@@ -1,0 +1,32 @@
+{
+    "name": "@inappstory/game-center-api",
+    "version": "1.0.0-rc.1",
+    "description": "",
+    "private": true,
+    "dependencies": {
+        "semver": "^7.3.8"
+    },
+    "devDependencies": {
+        "@tsconfig/recommended": "^1.0.2",
+        "@types/semver": "^7.5.0",
+        "npm": "latest"
+    },
+    "scripts": {
+        "build": "tsc",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+        "lint": "tslint -p tsconfig.json"
+    },
+    "files": [
+        "lib/**/*"
+    ],
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/inappstory/game-center-api"
+    },
+    "bugs": {
+        "url": "https://github.com/inappstory/game-center-api/issues"
+    }
+}
