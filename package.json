@@ -27,5 +27,6 @@
     },
     "bugs": {
         "url": "https://github.com/inappstory/game-center-api/issues"
-    }
+    },
+    "license": "MIT"
 }
