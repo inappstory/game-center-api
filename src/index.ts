@@ -1,6 +1,6 @@
 import {getSdkVersion, getSemverSdkVersion, isAndroid, isDev, isIos, isWeb } from "./env";
 import { gameLaunchConfig } from "./gameLaunchConfig";
-import { getDynamicResourceAsset } from "./gameResources";
+import { getDynamicResourceAsset, getDynamicResourceFont, getProjectFontFamilyStylesheet } from "./gameResources";
 import { sendIasApiRequest } from "./iasApi";
 import { gameLocalData } from "./localData";
 import {closeGameReader, createSdkApi } from "./sdkApi";
@@ -10,10 +10,12 @@ import { share } from "./sdkApi/share";
 import { vibrate } from "./sdkApi/vibrate";
 
 export type {ShareData as SDKShareData} from "./sdkApi/share";
+export type {PrimaryFontVariants as SDKPrimaryFontVariants, SecondaryFontVariants as SDKSecondaryFontVariants } from "./gameResources";
 
 export {
     createSdkApi, closeGameReader, gameLoadedSdkCallback, gameLaunchConfig, isIos, isWeb, isAndroid, isDev, getSdkVersion, getSemverSdkVersion,
-    gameLocalData, sendIasApiRequest, openUrl, share as sdkShare, vibrate as sdkVibrate, getDynamicResourceAsset
+    gameLocalData, sendIasApiRequest, openUrl, share as sdkShare, vibrate as sdkVibrate, getDynamicResourceAsset,
+    getDynamicResourceFont as sdkGetDynamicResourceFont, getProjectFontFamilyStylesheet as sdkGetProjectFontFamilyStylesheet
 }
 
 
