@@ -9,7 +9,11 @@ import {sendIasApiRequest} from "./iasApi";
 class LocalDataMap<K, V> extends Map<K, V> {
     set(key: K, value: V) {
         super.set(key, value);
-        setGameLocalData();
+
+        if (localDataCreated) {
+            // skip special logic for map.set call from Map constructor
+            setGameLocalData();
+        }
         return this;
     }
 }
