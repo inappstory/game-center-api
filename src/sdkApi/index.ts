@@ -59,23 +59,30 @@ export const createSdkApi = ({
 
     // create bridge for web-sdk
     if (isWeb) {
+        const initWebSource = (event: MessageEvent<any>) => {
+            // call only for initGame msg from sdk
+            // prevent override webSource.sourceWindowOrigin from game itself msg (mobile safari issue)
+            webSource.sourceWindow = event.source as Window;
+            webSource.sourceWindowOrigin = event.origin;
+
+            // enable broadcast for corner case (VK WKWebView)
+            if (event.origin === "null" || event.origin == null || !Boolean(event.origin)) {
+                webSource.sourceWindowOrigin = "*";
+            }
+        };
+
         window.addEventListener(
             "message",
             event => {
                 // if (event.origin !== "http://example.org:8080")
                 //     return;
                 const data = event.data;
-                webSource.sourceWindow = event.source as Window;
-                webSource.sourceWindowOrigin = event.origin;
 
-                // enable broadcast for corner case (VK WKWebView)
-                if (event.origin === "null" || event.origin == null || !Boolean(event.origin)) {
-                    webSource.sourceWindowOrigin = "*";
-                }
 
                 if (Array.isArray(data)) {
                     switch (data[0]) {
                         case "initGame": {
+                            initWebSource(event);
                             // TODO - SDK version (second arg)
                             isFunction(window.initGame) && window.initGame(data[1]);
                         }
@@ -94,6 +101,11 @@ export const createSdkApi = ({
                         case "cb": {
                             if (data[1] && isObject(data[1])) {
                                 const params = data[1] as { cb: string; plainData: string; arguments: string };
+
+                                if (params['cb'] === "initGame") {
+                                    initWebSource(event);
+                                }
+
                                 // sendApi cb
                                 if (params["cb"] && params["plainData"]) {
                                     // @ts-ignore
