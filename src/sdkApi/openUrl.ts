@@ -1,7 +1,9 @@
 import {iosMh, isAndroid, isIos, isWeb} from "../env";
 import {webSource} from "./web/Source";
+import {OpenUrlOptions} from "./openUrl.h";
+import {closeGameReader as sdkCloseGameReader} from './index';
 
-export const openUrl = (url: string) => {
+export const openUrl = ({url, closeGameReader}: OpenUrlOptions) => {
     if (isAndroid) {
         if (window.Android.openUrl !== undefined) {
             window.Android.openUrl(JSON.stringify({url}));
@@ -17,5 +19,9 @@ export const openUrl = (url: string) => {
                 webSource.sourceWindowOrigin
             );
         }
+    }
+
+    if (closeGameReader) {
+        sdkCloseGameReader();
     }
 };

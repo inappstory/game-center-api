@@ -11,6 +11,7 @@ import { vibrate } from "./sdkApi/vibrate";
 
 export type {ShareData as SDKShareData} from "./sdkApi/share";
 export type {PrimaryFontVariants as SDKPrimaryFontVariants, SecondaryFontVariants as SDKSecondaryFontVariants } from "./gameResources";
+export type {OpenUrlOptions as SDKOpenUrlOptions} from "./sdkApi/openUrl.h";
 
 export {
     createSdkApi, closeGameReader, gameLoadedSdkCallback, gameLaunchConfig, isIos, isWeb, isAndroid, isDev, getSdkVersion, getSemverSdkVersion,
