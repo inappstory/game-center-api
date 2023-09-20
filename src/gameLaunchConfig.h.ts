@@ -27,7 +27,8 @@ export type GameLaunchConfig = {
         screenOrientation: "portrait" | "landscape",
         sdkVersion: string,
         sessionId: string,
-        userAgent: string
+        userAgent: string,
+        userId: string,
     },
 };
 
