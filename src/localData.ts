@@ -16,6 +16,16 @@ class LocalDataMap<K, V> extends Map<K, V> {
         }
         return this;
     }
+
+    delete(key: K): boolean {
+        const removed = super.delete(key);
+        if (removed) {
+            // skip if element with key does not exist in Map
+            setGameLocalData();
+        }
+
+        return removed;
+    }
 }
 
 export let gameLocalData: LocalDataMap<string, any> = new Map();

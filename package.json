@@ -1,6 +1,6 @@
 {
     "name": "@inappstory/game-center-api",
-    "version": "1.0.0-rc.7",
+    "version": "1.0.0-rc.8",
     "description": "",
     "dependencies": {
         "semver": "^7.3.8"
