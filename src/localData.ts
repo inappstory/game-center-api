@@ -6,7 +6,7 @@ import {webSource} from "./sdkApi/web/Source";
 import {sendIasApiRequest} from "./iasApi";
 
 
-class LocalDataMap<K, V> extends Map<K, V> {
+export class LocalDataMap<K, V> extends Map<K, V> {
     set(key: K, value: V) {
         super.set(key, value);
 
@@ -145,7 +145,7 @@ window.gameInstanceGetLocalDataCb = function (id: string, plainData: string) {
 const setGameLocalData = async (sendToServer: boolean = true) => {
     const data = Object.fromEntries(gameLocalData);
 
-    const sendDataToServer = () => sendIasApiRequest("PUT", "instance-user-data", {data});
+    const sendDataToServer = () => sendIasApiRequest({method: "PUT", path: "instance-user-data", data: {data}});
 
     const gameInstanceId = getGameInstanceId();
 

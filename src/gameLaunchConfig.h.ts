@@ -1,5 +1,22 @@
 import {GameResources} from "./gameResources.h";
 
+export enum PlaceholderType {
+    TEXT = "text",
+    IMAGE = "image",
+}
+
+export type Placeholder = {
+    type: PlaceholderType;
+    name: string;
+    value: string;
+};
+
+export enum ScreenOrientation {
+    PORTRAIT = "portrait",
+    LANDSCAPE = "landscape",
+}
+
+
 export type GameLaunchConfig = {
     gameInstanceId: number,
     gameResources: GameResources,
@@ -17,14 +34,14 @@ export type GameLaunchConfig = {
         deviceId: string,
         fullScreen: boolean,
         lang: string,
-        placeholders: Array<{name: string, type: "text" | "image", value: string}>,
+        placeholders: Array<Placeholder>,
         safeAreaInsets: {
             bottom: number,
             left: number,
             right: number,
             top: number
         },
-        screenOrientation: "portrait" | "landscape",
+        screenOrientation: ScreenOrientation,
         sdkVersion: string,
         sessionId: string,
         userAgent: string,
