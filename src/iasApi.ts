@@ -10,6 +10,7 @@ const prepareHeaders = (headers: RequestInfo["headers"]) => ({
             "X-User-Id": gameLaunchConfig.clientConfig.userId ?? "",
             "X-Request-Id": uuidV4(),
             "X-User-Agent": gameLaunchConfig.clientConfig.userAgent,
+            "X-App-Package-Id": gameLaunchConfig.clientConfig.appPackageId,
         },
         ...headers
     }
