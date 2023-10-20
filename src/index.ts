@@ -9,6 +9,7 @@ import { openUrl } from "./sdkApi/openUrl";
 import { share } from "./sdkApi/share";
 import { vibrate } from "./sdkApi/vibrate";
 import { ScreenOrientation, Placeholder, PlaceholderType } from "./gameLaunchConfig.h";
+import { fetchLocalFile } from "./sdkApi/fetchLocalFile";
 
 
 export type {ShareData as SDKShareData} from "./sdkApi/share";
@@ -24,7 +25,7 @@ export {
     getSdkVersion, getSemverSdkVersion,
     gameLocalData, sendIasApiRequest, openUrl, share, vibrate, getDynamicResourceAsset,
     getDynamicResourceFont, getProjectFontFamilyStylesheet, getIsDemoMode, getSessionId, getApiBaseUrl,
-    ScreenOrientation, PlaceholderType
+    ScreenOrientation, PlaceholderType, fetchLocalFile
 }
 
 
@@ -34,7 +35,7 @@ const GameCenterApi = {
     getSdkVersion, getSemverSdkVersion,
     gameLocalData, sendIasApiRequest, openUrl, share, vibrate, getDynamicResourceAsset,
     getDynamicResourceFont, getProjectFontFamilyStylesheet, getIsDemoMode, getSessionId, getApiBaseUrl,
-    ScreenOrientation, PlaceholderType
+    ScreenOrientation, PlaceholderType, fetchLocalFile
 }
 
 export { GameCenterApi as default };
