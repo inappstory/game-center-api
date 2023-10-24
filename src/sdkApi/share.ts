@@ -27,15 +27,9 @@ export const share = async (config: ShareData): Promise<boolean> => {
 
         const id = uuidV4();
 
-        const handler = () => {
-            if (document.visibilityState === "visible") {
-                resolve(true);
-
-                if (asyncQueue.has(id)) {
-                    asyncQueue.delete(id);
-                }
-            }
-        };
+        asyncQueue.set(id, (plainData: any) => {
+            resolve(plainData);
+        });
 
         if (isAndroid) {
             if ("share" in window.Android) {
@@ -57,10 +51,6 @@ export const share = async (config: ShareData): Promise<boolean> => {
             }
         }
 
-
-        asyncQueue.set(id, (plainData: any) => {
-            resolve(plainData);
-        });
     });
 };
 

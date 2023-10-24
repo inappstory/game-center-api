@@ -46,5 +46,6 @@ export type GameLaunchConfig = {
         sessionId: string,
         userAgent: string,
         userId: string,
+        nonce?: string,
     },
 };

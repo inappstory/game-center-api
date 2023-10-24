@@ -19,6 +19,8 @@ export type { RequestInfo as APIRequestInfo, Response as APIResponse } from "./i
 
 export type  {Placeholder};
 
+export type { ProjectFontFamily } from "./gameResources";
+
 export {
     createSdkApi, closeGameReader, gameLoadedSdkCallback, gameLaunchConfig,
     isIos, isWeb, isAndroid, isDev,

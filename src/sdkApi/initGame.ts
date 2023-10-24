@@ -3,6 +3,7 @@ import {isObject} from "../helpers/isObject";
 import {gameLaunchConfig, setGameLaunchConfig} from "../gameLaunchConfig";
 import {iosMh, isAndroid, isIos, isWeb} from "../env";
 import {webSource} from "./web/Source";
+import {createNonce} from "../createNonce";
 
 declare global {
     interface Window {
@@ -52,6 +53,10 @@ export const createInitGame = (initLocalData: () => Promise<void>, cb?: () => vo
         if (gameLaunchConfig.verbose) {
             // @ts-ignore
             window.__config = config;
+        }
+
+        if (gameLaunchConfig?.clientConfig?.nonce) {
+            createNonce(gameLaunchConfig?.clientConfig?.nonce);
         }
 
         await initLocalData();

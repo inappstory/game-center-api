@@ -1,6 +1,6 @@
 {
     "name": "@inappstory/game-center-api",
-    "version": "1.0.0-rc.11",
+    "version": "1.0.0-rc.12",
     "description": "",
     "dependencies": {
         "semver": "^7.3.8",
@@ -20,6 +20,10 @@
     "files": [
         "lib/**/*"
     ],
+    "exports": {
+        ".": "./lib/index.js",
+        "./package.json": "./package.json"
+    },
     "main": "lib/index.js",
     "types": "lib/index.d.ts",
     "repository": {
