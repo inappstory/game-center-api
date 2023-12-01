@@ -161,11 +161,11 @@ const sdkCloseGameReader = (data?: Record<string, any>) => {
         }));
     } else if (isWeb) {
         if (webSource.sourceWindow && webSource.sourceWindowOrigin) {
-            webSource.sourceWindow.postMessage(["gameComplete", data, devPayload, null], webSource.sourceWindowOrigin);
+            webSource.sourceWindow.postMessage(["gameComplete", data, devPayload, null, openStory], webSource.sourceWindowOrigin);
         }
     }
 };
 
-export const closeGameReader = () => {
-    sdkCloseGameReader();
+export const closeGameReader = (data?: Record<string, any>) => {
+    sdkCloseGameReader(data);
 };

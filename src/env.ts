@@ -6,14 +6,14 @@ const semver = require("semver");
 declare global {
     interface Window {
         // _log: (msg: string) => void;
-        Android: any;
+        Android: Record<string, any>;
         webkit: {
             messageHandlers: Record<string, any>;
         };
     }
 }
 
-const isAndroid = window.Android;
+const isAndroid = Boolean(window.Android && window.Android.gameLoaded);
 // todo как то улучшить detector
 const isIos = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.gameLoaded;
 const isWeb = !isAndroid && !isIos;
