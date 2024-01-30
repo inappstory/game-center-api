@@ -8,6 +8,7 @@ import {isAndroid, isIos, isWeb} from "../env";
 import {webSource} from "./web/Source";
 import {isFunction} from "../helpers/isFunction";
 import {isObject} from "../helpers/isObject";
+import {OpenStoryOptions} from "./openStory.h";
 
 
 let beforeUnmount: (() => void) | undefined;
@@ -133,15 +134,21 @@ export const createSdkApi = ({
 };
 
 
+export type CloseGameReaderOptions = {
+    [key: string]: any;
+    openUrl?: string;
+    openStory?: OpenStoryOptions;
+};
+
 /**
  * API method for close Reader from game
  */
-const sdkCloseGameReader = (data?: Record<string, any>) => {
+const sdkCloseGameReader = (data?: CloseGameReaderOptions) => {
 
     beforeUnmount && beforeUnmount();
 
     const devPayload = data ?? {};
-    const openUrl = null;
+    const openUrl = data?.openUrl != null ? data.openUrl : null;
     const openStory = data?.openStory != null ? data.openStory : null;
 
     if (isAndroid) {
@@ -166,6 +173,6 @@ const sdkCloseGameReader = (data?: Record<string, any>) => {
     }
 };
 
-export const closeGameReader = (data?: Record<string, any>) => {
+export const closeGameReader = (data?: CloseGameReaderOptions) => {
     sdkCloseGameReader(data);
 };
