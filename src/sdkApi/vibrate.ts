@@ -47,8 +47,19 @@ export const vibrate = (
         //     window.webkit.messageHandlers.vibrate.postMessage(JSON.stringify(patternResult));
         // }
     } else {
-        if (window.navigator.vibrate) {
-            window.navigator.vibrate(patternResult);
+
+        if (window.Android.vibrate != null) {
+            try {
+                window.Android.vibrate(patternResult);
+            } catch (e) {
+                console.error(e);
+            }
+        } else {
+            try {
+                navigator.vibrate(patternResult);
+            } catch (e) {
+                console.error(e);
+            }
         }
     }
 };
