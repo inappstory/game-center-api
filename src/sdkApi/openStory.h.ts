@@ -1,4 +1,4 @@
 export type OpenStoryOptions = {
-    id: number,
+    id: string|number,
     slideIndex?: number
 };

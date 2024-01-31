@@ -2,19 +2,145 @@
 
 import {gameLaunchConfig} from "./gameLaunchConfig";
 import {isAndroid, isIos} from "./env";
+import {ResourceInterface} from "./ResourceManager";
+import {PlaceholderType} from "./gameLaunchConfig.h";
+
+class Asset implements ResourceInterface {
+    constructor(private readonly _key: string, private readonly _originUri: string) {
+        this._cacheUri = this._originUri;
+    }
+
+    get key() {
+        return this._key;
+    }
+
+    private _cacheUri: string = "";
+    setCacheUri(uri: string): void {
+        this._cacheUri = uri;
+    }
+
+    getCacheUri(): string {
+        return this._cacheUri;
+    }
+
+    getOriginUri(): string {
+        return this._originUri;
+    }
+
+    unsetCacheUri(): void {
+        this._cacheUri = this._originUri;
+    }
+
+}
+
+export abstract class Resource implements Iterable<ResourceInterface> {
+    get assets() {
+        // get keys from Asset
+        return Object.fromEntries(this.__assets.map(item => [item.key, item.getCacheUri()]));
+    }
+
+    getAssetByKey(key: string, defaultValue: any) {
+        for (let i = 0; i < this.__assets.length; ++i) {
+            if (this.__assets[i].key === key) {
+                return this.__assets[i].getCacheUri();
+            }
+        }
+        return defaultValue;
+    }
+
+    protected _assets: Array<Asset> | undefined = undefined;
+
+    protected rawMapGetter(): Record<string, string> {
+        return {};
+    }
+
+    protected get __assets() {
+        if (this._assets == null) {
+            const map = this.rawMapGetter();
+            this._assets = new Array<Asset>();
+            for (let key in map) {
+
+                let src=  map[key] as unknown as string;
+                const gameInstanceId = gameLaunchConfig.gameInstanceId;
+                if (isAndroid || isIos) {
+                    src = `./resources_${gameInstanceId}/${key}`;
+                }
+
+                this._assets.push(new Asset(key, src));
+            }
+        }
+        return this._assets;
+    }
+
+    [Symbol.iterator]() {
+        let pointer = 0;
+        const components = this.__assets;
+
+        return {
+            next(): IteratorResult<ResourceInterface> {
+                if (pointer < components.length) {
+                    return {
+                        done: false,
+                        value: components[pointer++],
+                    };
+                } else {
+                    return {
+                        done: true,
+                        value: null,
+                    };
+                }
+            },
+        };
+    }
+}
+
+export abstract class StaticResource extends Resource {
+
+    protected get __assets() {
+        if (this._assets == null) {
+            const map = this.rawMapGetter();
+            this._assets = new Array<Asset>();
+            for (let key in map) {
+                let src=  map[key] as unknown as string;
+                this._assets.push(new Asset(key, src));
+            }
+        }
+        return this._assets;
+    }
+}
+
+export abstract class DynamicResource extends Resource {
+
+    protected get __assets() {
+        if (this._assets == null) {
+            const map = this.rawMapGetter();
+            this._assets = new Array<Asset>();
+            for (let key in map) {
+
+                let src=  map[key] as unknown as string;
+                const gameInstanceId = gameLaunchConfig.gameInstanceId;
+                if (isAndroid || isIos) {
+                    src = `./resources_${gameInstanceId}/${key}`;
+                }
+
+                this._assets.push(new Asset(key, src));
+            }
+        }
+        return this._assets;
+    }
+
+}
+
+export class DynamicResourceAssets extends DynamicResource {
+    protected rawMapGetter(): Record<string, string> {
+        return (gameLaunchConfig?.gameResources?.assets ?? {}) as unknown as Record<string, string>;
+    }
+}
+
+export const dynamicResourceAssets = new DynamicResourceAssets();
 
 export const getDynamicResourceAsset = (key: string, defaultValue: any) => {
-    const gameInstanceId = gameLaunchConfig.gameInstanceId;
-    const assets = gameLaunchConfig?.gameResources?.assets ?? {};
-
-    if (assets[key] != null) {
-        if (isAndroid || isIos) {
-            return `./resources_${gameInstanceId}/${key}`;
-        } else {
-            return assets[key]; // url
-        }
-    }
-    return defaultValue;
+    return dynamicResourceAssets.getAssetByKey(key, defaultValue);
 };
 
 export enum PrimaryFontVariants {
@@ -32,18 +158,16 @@ export enum SecondaryFontVariants {
 
 }
 
-export const getDynamicResourceFont = (key: PrimaryFontVariants | SecondaryFontVariants): string | null => {
-    const gameInstanceId = gameLaunchConfig.gameInstanceId;
-    const fonts = gameLaunchConfig?.gameResources?.fonts ?? {};
-
-    if (fonts[key] != null) {
-        if (isAndroid || isIos) {
-            return `./resources_${gameInstanceId}/${key}`;
-        } else {
-            return fonts[key] as unknown as string;
-        }
+export class DynamicResourceFonts extends DynamicResource {
+    protected rawMapGetter(): Record<string, string> {
+        return (gameLaunchConfig?.gameResources?.fonts ?? {}) as unknown as Record<string, string>;
     }
-    return null;
+}
+
+export const dynamicResourceFonts = new DynamicResourceFonts();
+
+export const getDynamicResourceFont = (key: PrimaryFontVariants | SecondaryFontVariants): string | null => {
+    return dynamicResourceFonts.getAssetByKey(key, null);
 };
 
 export type ProjectFontFamily = {
@@ -182,3 +306,20 @@ export const getProjectFontFamilyStylesheet = () => {
     projectFontFamilyStylesheet = response;
     return projectFontFamilyStylesheet;
 };
+
+export class StaticResourcesImagePlaceholders extends StaticResource {
+    protected rawMapGetter(): Record<string, string> {
+        let map: Record<string, string> = {};
+        for (const placeholder of gameLaunchConfig.clientConfig.placeholders) {
+            if (placeholder.type === PlaceholderType.IMAGE) {
+                // @ts-ignore
+                map[placeholder.name] = placeholder.originValue;
+            }
+        }
+        return map;
+    }
+}
+
+export const staticResourcesImagePlaceholders = new StaticResourcesImagePlaceholders();
+
+

@@ -1,7 +1,38 @@
-import {getSemverSdkVersion, isAndroid, isIos} from "../env";
+import { getSemverSdkVersion, isAndroid } from "../env";
+
 const semver = require("semver");
 
+
+class URLResolver {
+    private _link;
+
+    private constructor() {
+        this._link = document.createElement("a");
+    }
+
+    private static _instance: URLResolver;
+
+    public static getInstance() {
+        if (URLResolver._instance == null) {
+            URLResolver._instance = new URLResolver();
+        }
+        return URLResolver._instance;
+    }
+
+    public resolve(url: string): string {
+        this._link.href = url;
+        return this._link.href;
+    }
+
+}
+
+
 function fetchLocalAndroid(url: string) {
+
+    if (url.substring(0, 1) === "/" || url.substring(0, 2) === "./") {
+        url = URLResolver.getInstance().resolve(url);
+    }
+
     // if sdk 1.16.2+
     return fetch(url.replace("file:///", "http://file-assets/"));
 }
@@ -36,9 +67,9 @@ export function fetchLocalFile(url: string, remoteUrl?: string): Promise<Respons
                 }
                 return fetch(remoteUrl);
             } else {
-                return new Promise(function(resolve, reject) {
+                return new Promise(function (resolve, reject) {
                     var xhr = new XMLHttpRequest;
-                    xhr.onload = function() {
+                    xhr.onload = function () {
                         // status 0 in android 9+
                         try {
                             resolve(new Response(xhr.response,
@@ -47,14 +78,14 @@ export function fetchLocalFile(url: string, remoteUrl?: string): Promise<Respons
                             console.error(e);
                             reject(e);
                         }
-                    }
-                    xhr.onerror = function() {
-                        reject(new TypeError('Local request failed'));
-                    }
-                    xhr.open('GET', url);
+                    };
+                    xhr.onerror = function () {
+                        reject(new TypeError("Local request failed"));
+                    };
+                    xhr.open("GET", url);
                     xhr.responseType = "arraybuffer";
                     xhr.send(null);
-                })
+                });
             }
         }
     } else {
