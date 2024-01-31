@@ -2,6 +2,7 @@ import { getSemverSdkVersion, isAndroid } from "../env";
 
 const semver = require("semver");
 
+let instance: URLResolver;
 
 class URLResolver {
     private _link;
@@ -10,13 +11,11 @@ class URLResolver {
         this._link = document.createElement("a");
     }
 
-    private static _instance: URLResolver;
-
     public static getInstance() {
-        if (URLResolver._instance == null) {
-            URLResolver._instance = new URLResolver();
+        if (instance == null) {
+            instance = new URLResolver();
         }
-        return URLResolver._instance;
+        return instance;
     }
 
     public resolve(url: string): string {

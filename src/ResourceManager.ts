@@ -14,23 +14,23 @@ export interface ResourceInterface {
 }
 
 
+let instance: ResourceManager;
+
 export class ResourceManager {
     private constructor(private readonly srcInterfaces: Array<Iterable<ResourceInterface>>) {
     }
 
-    private static instance: ResourceManager;
-
     public static createInstance(srcInterfaces: Array<Iterable<ResourceInterface>>) {
-        if (ResourceManager.instance == null) {
-            ResourceManager.instance = new ResourceManager(srcInterfaces);
+        if (instance == null) {
+            instance = new ResourceManager(srcInterfaces);
         }
     }
 
     public static getInstance() {
-        if (ResourceManager.instance == null) {
+        if (instance == null) {
             ResourceManager.createInstance([]);
         }
-        return ResourceManager.instance;
+        return instance;
     }
 
     public preloadAllResources() {
