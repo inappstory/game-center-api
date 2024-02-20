@@ -50,10 +50,12 @@ export class ResourceManager {
                                     resource.setCacheUri(objectUrl);
                                     resolve();
                                 } else {
-                                    reject( `Resource fetching error for ${resource.getOriginUri()}: ${resource.key}`);
+                                    console.warn( `Resource fetching error for ${resource.getOriginUri()}: ${resource.key}`);
+                                    resolve();
                                 }
                             } catch (err) {
-                                reject(`Resource fetching error for ${resource.getOriginUri()}: ${resource.key}`);
+                                console.warn(`Resource fetching error for ${resource.getOriginUri()}: ${resource.key}`, err);
+                                resolve();
                             }
                         }
                     });
