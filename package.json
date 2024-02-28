@@ -1,6 +1,6 @@
 {
     "name": "@inappstory/game-center-api",
-    "version": "1.0.0-rc.21",
+    "version": "1.0.0-rc.22",
     "description": "",
     "dependencies": {
         "semver": "^7.3.8",
@@ -12,6 +12,7 @@
         "npm": "latest"
     },
     "scripts": {
+        "prepublish": "npm run build",
         "build": "tsc",
         "test": "echo \"Error: no test specified\" && exit 1",
         "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",

@@ -8,6 +8,9 @@ export interface ResourceInterface {
 
     getOriginUri(): string;
 
+    // for case when resource at getOriginUri is unavailable (Android SDK before 1.18.0)
+    getOriginFallbackUri(): string;
+
     unsetCacheUri(): void;
 
     key: string;
@@ -39,24 +42,15 @@ export class ResourceManager {
             for (let resource of this.srcInterfaces[key]) {
                 promises.push(((resource) => {
                     return new Promise<void>(async (resolve, reject) => {
-                        const src = resource.getOriginUri();
-                        if (!src) {
+                        let objectUrl = await this.createObjectUrlByUri(resource.key, resource.getOriginUri());
+                        if (!objectUrl) {
+                            objectUrl = await this.createObjectUrlByUri(resource.key, resource.getOriginFallbackUri());
+                        }
+                        if (objectUrl) {
+                            resource.setCacheUri(objectUrl);
                             resolve();
                         } else {
-                            try {
-                                const response = await fetchLocalFile(src);
-                                if (response != null) {
-                                    const objectUrl = URL.createObjectURL(await response.blob());
-                                    resource.setCacheUri(objectUrl);
-                                    resolve();
-                                } else {
-                                    console.warn( `Resource fetching error for ${resource.getOriginUri()}: ${resource.key}`);
-                                    resolve();
-                                }
-                            } catch (err) {
-                                console.warn(`Resource fetching error for ${resource.getOriginUri()}: ${resource.key}`, err);
-                                resolve();
-                            }
+                            resolve();
                         }
                     });
                 })(resource));
@@ -64,6 +58,24 @@ export class ResourceManager {
         }
 
         return Promise.all(promises);
+    }
+
+    private async createObjectUrlByUri(key: string, src: string): Promise<void | string> {
+        if (!src) {
+            return;
+        }
+        try {
+            const response = await fetchLocalFile(src);
+            if (response != null) {
+                return URL.createObjectURL(await response.blob());
+            } else {
+                console.warn(`Resource fetching error for ${src}: ${key}`);
+                return;
+            }
+        } catch (err) {
+            console.warn(`Resource fetching error for ${src}: ${key}`, err);
+            return;
+        }
     }
 
     public revokeCache(): void {

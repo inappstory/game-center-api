@@ -6,7 +6,7 @@ import {ResourceInterface} from "./ResourceManager";
 import {PlaceholderType} from "./gameLaunchConfig.h";
 
 class Asset implements ResourceInterface {
-    constructor(private readonly _key: string, private readonly _originUri: string) {
+    constructor(private readonly _key: string, private readonly _originUri: string, private readonly _originFallbackUri: string) {
         this._cacheUri = this._originUri;
     }
 
@@ -29,6 +29,10 @@ class Asset implements ResourceInterface {
 
     unsetCacheUri(): void {
         this._cacheUri = this._originUri;
+    }
+
+    getOriginFallbackUri(): string {
+        return this._originFallbackUri;
     }
 
 }
@@ -61,12 +65,13 @@ export abstract class Resource implements Iterable<ResourceInterface> {
             for (let key in map) {
 
                 let src=  map[key] as unknown as string;
+                let fallbackSrc = src;
                 const gameInstanceId = gameLaunchConfig.gameInstanceId;
                 if (isAndroid || isIos) {
                     src = `./resources_${gameInstanceId}/${key}`;
                 }
 
-                this._assets.push(new Asset(key, src));
+                this._assets.push(new Asset(key, src, fallbackSrc));
             }
         }
         return this._assets;
@@ -102,7 +107,7 @@ export abstract class StaticResource extends Resource {
             this._assets = new Array<Asset>();
             for (let key in map) {
                 let src=  map[key] as unknown as string;
-                this._assets.push(new Asset(key, src));
+                this._assets.push(new Asset(key, src, src));
             }
         }
         return this._assets;
@@ -118,12 +123,13 @@ export abstract class DynamicResource extends Resource {
             for (let key in map) {
 
                 let src=  map[key] as unknown as string;
+                let fallbackSrc = src;
                 const gameInstanceId = gameLaunchConfig.gameInstanceId;
                 if (isAndroid || isIos) {
                     src = `./resources_${gameInstanceId}/${key}`;
                 }
 
-                this._assets.push(new Asset(key, src));
+                this._assets.push(new Asset(key, src, fallbackSrc));
             }
         }
         return this._assets;
