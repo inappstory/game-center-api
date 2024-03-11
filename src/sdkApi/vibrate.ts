@@ -1,4 +1,4 @@
-import {isIos} from "../env";
+import { isIos } from "../env";
 
 /**
  * https://developer.mozilla.org/en-US/docs/Web/API/Vibration_API
@@ -39,7 +39,13 @@ export const vibrate = (
         }
 
         if (window.webkit.messageHandlers.haptic && window.webkit.messageHandlers.haptic.postMessage) {
-            window.webkit.messageHandlers.haptic.postMessage(JSON.stringify({ pattern: pattern, fallbackStyle: fallbackStyle, enableVibrateFallback: false }));
+            window.webkit.messageHandlers.haptic.postMessage(
+                JSON.stringify({
+                    pattern: pattern,
+                    fallbackStyle: fallbackStyle,
+                    enableVibrateFallback: false,
+                })
+            );
         }
 
         // @deprecated
@@ -47,8 +53,7 @@ export const vibrate = (
         //     window.webkit.messageHandlers.vibrate.postMessage(JSON.stringify(patternResult));
         // }
     } else {
-
-        if (window.Android.vibrate != null) {
+        if (window.Android && window.Android.vibrate != null) {
             try {
                 window.Android.vibrate(patternResult);
             } catch (e) {
