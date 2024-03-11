@@ -176,3 +176,22 @@ const sdkCloseGameReader = (data?: CloseGameReaderOptions) => {
 export const closeGameReader = (data?: CloseGameReaderOptions) => {
     sdkCloseGameReader(data);
 };
+
+export const reloadGameReader = () => {
+    // todo add sdk support definition
+
+    if (isAndroid) {
+        if (window.Android.reloadGameReader) {
+            window.Android.reloadGameReader();
+        }
+    } else if (isIos) {
+        if (window.webkit.messageHandlers.reloadGameReader) {
+            window.webkit.messageHandlers.reloadGameReader.postMessage("");
+        }
+    } else if (isWeb) {
+        if (webSource.sourceWindow && webSource.sourceWindowOrigin) {
+            webSource.sourceWindow.postMessage(["reloadGameReader"], webSource.sourceWindowOrigin);
+        }
+    }
+
+}

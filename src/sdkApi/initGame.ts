@@ -18,15 +18,20 @@ declare global {
         _log: (text: string) => void;
         _sendErrorLog: (payload: Record<string, any>) => void;
         gameLoadingInfo: {
+            loaded: boolean;
             state: string;
             description: string;
+            error: string;
         };
+        gameLoadFailed: typeof gameLoadFailedSdkCallback;
     }
 }
 
 window.gameLoadingInfo = {
+    loaded: false,
     state: "before gameReader API creation",
-    description: ""
+    description: "",
+    error: "",
 }
 
 type GameReaderInit = {
@@ -41,15 +46,11 @@ const gameReader: GameReaderInit = (function () {
             setTimeout((function (cb: () => void, i: number) {
                 return function () {
                     try {
-                        window.gameLoadingInfo = {
-                            state: "before call gameReaderInit queue",
-                            description: "index: " + i
-                        }
+                        window.gameLoadingInfo.state = "before call gameReaderInit queue";
+                        window.gameLoadingInfo.description = "index: " + i;
                         cb();
-                        window.gameLoadingInfo = {
-                            state: "after call gameReaderInit queue",
-                            description: "index: " + i
-                        }
+                        window.gameLoadingInfo.state = "after call gameReaderInit queue";
+                        window.gameLoadingInfo.description = "index: " + i;
                     } catch (e) {
                         window._sendErrorLog && window._sendErrorLog({src: "gameReaderInit queue", message: (e as Error).message, stack: (e as Error).stack});
                         console.error(e);
@@ -61,15 +62,11 @@ const gameReader: GameReaderInit = (function () {
     self.ready = function (cb) {
         setTimeout(function () {
             try {
-                window.gameLoadingInfo = {
-                    state: "before call gameReaderInit ready",
-                    description: ""
-                }
+                window.gameLoadingInfo.state = "before call gameReaderInit ready";
+                window.gameLoadingInfo.description = "";
                 cb();
-                window.gameLoadingInfo = {
-                    state: "after call gameReaderInit ready",
-                    description: ""
-                }
+                window.gameLoadingInfo.state = "after call gameReaderInit ready";
+                window.gameLoadingInfo.description = "";
             } catch (e) {
                 window._sendErrorLog && window._sendErrorLog({src: "gameReaderInit ready", message: (e as Error).message, stack: (e as Error).stack});
                 console.error(e);
@@ -85,10 +82,8 @@ export const createInitGame = (initLocalData: () => Promise<void>, cb?: () => vo
 
     window.initGame = async function (config: GameLaunchConfig) {
         try {
-            window.gameLoadingInfo = {
-                state: "before call initGame",
-                description: JSON.stringify(config)
-            }
+            window.gameLoadingInfo.state = "before call initGame";
+            window.gameLoadingInfo.description = JSON.stringify(config);
             if (!isObject(config)) {
                 console.error("Invalid gameConfig");
                 return;
@@ -110,10 +105,8 @@ export const createInitGame = (initLocalData: () => Promise<void>, cb?: () => vo
 
             cb && cb();
 
-            window.gameLoadingInfo = {
-                state: "after call initGame",
-                description: JSON.stringify(config)
-            }
+            window.gameLoadingInfo.state = "after call initGame";
+            window.gameLoadingInfo.description = JSON.stringify(config);
 
         } catch (e) {
             window._sendErrorLog && window._sendErrorLog({src: "initGame", message: (e as Error).message, stack: (e as Error).stack});
@@ -131,10 +124,8 @@ type GameLoadedSdkConfig = Partial<{
  * API method for remove loader screen from Reader
  */
 export const gameLoadedSdkCallback = (config?: Partial<GameLoadedSdkConfig>) => {
-    window.gameLoadingInfo = {
-        state: "before call gameLoadedSdkCallback",
-        description: ""
-    }
+    window.gameLoadingInfo.state = "before call gameLoadedSdkCallback";
+    window.gameLoadingInfo.description = "";
     try {
         let showClose = config?.showClose;
         if (showClose == null) {
@@ -160,10 +151,9 @@ export const gameLoadedSdkCallback = (config?: Partial<GameLoadedSdkConfig>) => 
                 })], webSource.sourceWindowOrigin);
             }
         }
-        window.gameLoadingInfo = {
-            state: "after call gameLoadedSdkCallback",
-            description: ""
-        }
+        window.gameLoadingInfo.state = "after call gameLoadedSdkCallback";
+        window.gameLoadingInfo.description = "";
+        window.gameLoadingInfo.loaded = true;
     } catch (e) {
         window._sendErrorLog && window._sendErrorLog({src: "gameLoadedSdkCallback", message: (e as Error).message, stack: (e as Error).stack});
         console.error(e);
@@ -171,6 +161,31 @@ export const gameLoadedSdkCallback = (config?: Partial<GameLoadedSdkConfig>) => 
 };
 
 window.gameLoadingInfo = {
+    loaded: false,
     state: "gameReader API created",
-    description: ""
+    description: "",
+    error: "",
 }
+
+export const gameLoadFailedSdkCallback = (reason: string, canTryReload: boolean) => {
+    if (!window.gameLoadingInfo.loaded) {
+        window.gameLoadingInfo.state = "before call gameLoadFailedSdkCallback";
+        window.gameLoadingInfo.description = reason;
+        if (isAndroid) {
+            if (window.Android.gameLoadFailed) {
+                window.Android.gameLoadFailed(reason, canTryReload);
+            }
+        } else if (isIos) {
+            if (iosMh.gameLoadFailed) {
+                iosMh.gameLoadFailed.postMessage(JSON.stringify({reason, canTryReload}));
+            }
+        } else if (isWeb) {
+            if (webSource.sourceWindow && webSource.sourceWindowOrigin) {
+                webSource.sourceWindow.postMessage(["gameLoadFailed", reason, canTryReload], webSource.sourceWindowOrigin);
+            }
+        }
+    }
+};
+
+
+window.gameLoadFailed = gameLoadFailedSdkCallback;

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover" />
+    <title><%= htmlWebpackPlugin.options.packageName %></title>
+
+    <!-- To run web application in full-screen -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <!-- Status Bar Style (see Supported Meta Tags below for available values) -->
+    <!-- Has no effect unless you have the previous meta tag -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <style>
+        html {
+            background-color: #0A0A0A;
+        }
+    </style>
+
+    <script type="application/javascript">
+        // prevent Can't find variable: pauseUI
+        window.pauseUI = function () { };
+        // prevent Can't find variable: resumeUI
+        window.resumeUI = function () { };
+
+        (function () {
+
+            if (console.logOrigin == null) {
+                console.logOrigin = console.log;
+                console.infoOrigin = console.info;
+                console.debugOrigin = console.debug;
+                console.warnOrigin = console.warn;
+                console.errorOrigin = console.error;
+            }
+
+            var packageName = '<%= JSON.stringify(htmlWebpackPlugin.options.packageName) %>'.replace(/"/g, "");
+            var buildVersion = '<%= JSON.stringify(htmlWebpackPlugin.options.buildVersion) %>'.replace(/"/g, "");
+            var messagesLimit = 100;
+            var messagesCount = 0;
+            window._sendErrorLog = function(payload) {
+                if (messagesCount < messagesLimit && "sendBeacon" in navigator) {
+                    var keys = Object.keys(payload);
+                    var formData = new FormData();
+                    for (var i = 0; i < keys.length; ++i) {
+                        formData.append(keys[i], payload[keys[i]]);
+                    }
+                    navigator.sendBeacon(
+                        "https://games.inappstory.com/" + packageName + "/" + buildVersion + "/error.log",
+                        formData);
+                    ++messagesCount;
+                }
+            };
+
+            window.onerror = function(msg, url, lineNo, columnNo, error) {
+                var payload = {
+                    type: "onerror event",
+                    message: msg,
+                    lineno: lineNo,
+                    colno: columnNo,
+                    source: url,
+                    errorMessage: error ? error.message : "",
+                    errorStack: error ? error.stack : ""
+                };
+                if (error) {
+                    payload.errorMessage = error.message;
+                    payload.errorStack = error.stack;
+                }
+                // if (msg === "Script error.") {
+                if (window.gameLoadingInfo) {
+                    payload.loadingState = window.gameLoadingInfo.state;
+                    payload.loadingDescription = window.gameLoadingInfo.description;
+                }
+
+                payload.gameReaderExists = window.gameReader != null;
+                payload.initGameExists = window.initGame != null;
+                payload.readyState = document.readyState;
+                payload.androidExists = window.Android != null;
+                payload.androidGameLoadedExists = window.Android != null && window.Android.gameLoaded != null;
+
+                // }
+                window._sendErrorLog(payload);
+                return false;
+            }
+
+            window.onunhandledrejection = function(event) {
+                var payload = {
+                    type: "onunhandledrejection",
+                    reason: event.reason,
+                };
+                window._sendErrorLog(payload);
+            };
+
+            window.console.error = function() {
+                var messages = Array.prototype.slice.call(arguments);
+                var payload = {
+                    type: "console error"
+                };
+                for (var i=0; i < messages.length;++i) {
+                    var field = "message" + String(i);
+                    var value = messages[i];
+                    if (!(typeof value === "string" || value instanceof Error)) {
+                        try {
+                            value = JSON.stringify(value);
+                        } catch (e) {
+                            value = e.message;
+                        }
+                    }
+                    payload[field] = value;
+                }
+
+                window._sendErrorLog(payload);
+                console.errorOrigin(arguments);
+            }
+
+        })();
+    </script>
+</head>
+
+<body>
+    <div id="root"></div>
+    <div id="modal-layer"></div>
+</body>
+
+</html>
