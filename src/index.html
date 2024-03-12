@@ -53,6 +53,28 @@
                 }
             };
 
+            // canTryReload - for Script error. and unexpected EOL
+
+            if (window.gameLoadFailed == null) {
+                window.gameLoadFailed = function(reason, canTryReload) {
+                    if (window.Android) {
+                        if (window.Android.gameLoadFailed) {
+                            window.Android.gameLoadFailed(reason, canTryReload);
+                        }
+                    } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.gameLoaded) {
+                        if (window.webkit.messageHandlers.gameLoadFailed) {
+                            window.webkit.messageHandlers.gameLoadFailed.postMessage(JSON.stringify({reason: reason, canTryReload: canTryReload}));
+                        }
+                    }
+                };
+            }
+
+            setTimeout(function() {
+                if (!window.gameLoadingInfo.loaded) {
+                    window.gameLoadFailed(window.gameLoadingInfo.error, false);
+                }
+            }, 30000);
+
             window.onerror = function(msg, url, lineNo, columnNo, error) {
                 var payload = {
                     type: "onerror event",
@@ -81,6 +103,12 @@
 
                 // }
                 window._sendErrorLog(payload);
+
+                window.gameLoadingInfo.error = msg;
+                if (msg === "Script error.") {
+                    window.gameLoadFailed(msg, true);
+                }
+
                 return false;
             }
 
@@ -91,6 +119,50 @@
                 };
                 window._sendErrorLog(payload);
             };
+
+
+
+            window.console.log = function() {
+                var messages = Array.prototype.slice.call(arguments);
+                console.logOrigin(messages);
+                if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.logHandler && messages.length) {
+                    window.webkit.messageHandlers.logHandler.postMessage(messages[0]);
+                }
+            }
+
+            window.console.info = function() {
+                var messages = Array.prototype.slice.call(arguments);
+                console.infoOrigin(messages);
+                if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.infoHandler && messages.length) {
+                    window.webkit.messageHandlers.infoHandler.postMessage(messages[0]);
+                }
+            }
+
+            window.console.debug = function() {
+                var messages = Array.prototype.slice.call(arguments);
+                console.debugOrigin(messages);
+                if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.debugOrigin && messages.length) {
+                    window.webkit.messageHandlers.debugOrigin.postMessage(messages[0]);
+                }
+            }
+
+            window.console.debug = function() {
+                var messages = Array.prototype.slice.call(arguments);
+                console.debugOrigin(messages);
+                if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.debugHandler && messages.length) {
+                    window.webkit.messageHandlers.debugHandler.postMessage(messages[0]);
+                }
+            }
+
+            window.console.warn = function() {
+                var messages = Array.prototype.slice.call(arguments);
+                console.warnOrigin(messages);
+                if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.warnHandler && messages.length) {
+                    window.webkit.messageHandlers.warnHandler.postMessage(messages[0]);
+                }
+            }
+
+
 
             window.console.error = function() {
                 var messages = Array.prototype.slice.call(arguments);
@@ -111,7 +183,10 @@
                 }
 
                 window._sendErrorLog(payload);
-                console.errorOrigin(arguments);
+                console.errorOrigin(messages);
+                if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.errorHandler && messages.length) {
+                    window.webkit.messageHandlers.errorHandler.postMessage(messages[0]);
+                }
             }
 
         })();
