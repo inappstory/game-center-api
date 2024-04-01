@@ -1,4 +1,5 @@
-import {fetchLocalFile} from "./sdkApi/fetchLocalFile";
+import { fetchLocalFile } from "./sdkApi/fetchLocalFile";
+import { Resource } from "./gameResources";
 
 export interface ResourceInterface {
     // set cache uri to object internal variable
@@ -16,14 +17,12 @@ export interface ResourceInterface {
     key: string;
 }
 
-
 let instance: ResourceManager;
 
 export class ResourceManager {
-    private constructor(private readonly srcInterfaces: Array<Iterable<ResourceInterface>>) {
-    }
+    private constructor(private readonly srcInterfaces: Array<Resource>) {}
 
-    public static createInstance(srcInterfaces: Array<Iterable<ResourceInterface>>) {
+    public static createInstance(srcInterfaces: Array<Resource>) {
         if (instance == null) {
             instance = new ResourceManager(srcInterfaces);
         }
@@ -37,10 +36,11 @@ export class ResourceManager {
     }
 
     public preloadAllResources() {
-        const promises = [];
+        const promises: Array<Promise<void>> = [];
         for (let key in this.srcInterfaces) {
+            const srcInterfacePromises: Array<Promise<void>> = [];
             for (let resource of this.srcInterfaces[key]) {
-                promises.push(((resource) => {
+                const promise = (resource => {
                     return new Promise<void>(async (resolve, reject) => {
                         let objectUrl = await this.createObjectUrlByUri(resource.key, resource.getOriginUri());
                         if (!objectUrl) {
@@ -53,8 +53,16 @@ export class ResourceManager {
                             resolve();
                         }
                     });
-                })(resource));
+                })(resource);
+                srcInterfacePromises.push(promise);
+                promises.push(promise);
             }
+            ((srcInterface: Resource) =>
+                Promise.all(srcInterfacePromises).then(() => {
+                    if (srcInterface["_onPreloadDoneCb"]) {
+                        srcInterface["_onPreloadDoneCb"]();
+                    }
+                }))(this.srcInterfaces[key]);
         }
 
         return Promise.all(promises);

@@ -1,12 +1,16 @@
 // todo - get fonts arr and other keys
 
-import {gameLaunchConfig} from "./gameLaunchConfig";
-import {isAndroid, isIos} from "./env";
-import {ResourceInterface} from "./ResourceManager";
-import {PlaceholderType} from "./gameLaunchConfig.h";
+import { gameLaunchConfig } from "./gameLaunchConfig";
+import { isAndroid, isIos } from "./env";
+import { ResourceInterface } from "./ResourceManager";
+import { PlaceholderType } from "./gameLaunchConfig.h";
 
 class Asset implements ResourceInterface {
-    constructor(private readonly _key: string, private readonly _originUri: string, private readonly _originFallbackUri: string) {
+    constructor(
+        private readonly _key: string,
+        private readonly _originUri: string,
+        private readonly _originFallbackUri: string
+    ) {
         this._cacheUri = this._originUri;
     }
 
@@ -34,10 +38,11 @@ class Asset implements ResourceInterface {
     getOriginFallbackUri(): string {
         return this._originFallbackUri;
     }
-
 }
 
 export abstract class Resource implements Iterable<ResourceInterface> {
+    constructor(private readonly _onPreloadDoneCb?: () => void) {}
+
     get assets() {
         // get keys from Asset
         return Object.fromEntries(this.__assets.map(item => [item.key, item.getCacheUri()]));
@@ -63,8 +68,7 @@ export abstract class Resource implements Iterable<ResourceInterface> {
             const map = this.rawMapGetter();
             this._assets = new Array<Asset>();
             for (let key in map) {
-
-                let src=  map[key] as unknown as string;
+                let src = map[key] as unknown as string;
                 let fallbackSrc = src;
                 const gameInstanceId = gameLaunchConfig.gameInstanceId;
                 if (isAndroid || isIos) {
@@ -100,13 +104,12 @@ export abstract class Resource implements Iterable<ResourceInterface> {
 }
 
 export abstract class StaticResource extends Resource {
-
     protected get __assets() {
         if (this._assets == null) {
             const map = this.rawMapGetter();
             this._assets = new Array<Asset>();
             for (let key in map) {
-                let src=  map[key] as unknown as string;
+                let src = map[key] as unknown as string;
                 this._assets.push(new Asset(key, src, src));
             }
         }
@@ -115,14 +118,12 @@ export abstract class StaticResource extends Resource {
 }
 
 export abstract class DynamicResource extends Resource {
-
     protected get __assets() {
         if (this._assets == null) {
             const map = this.rawMapGetter();
             this._assets = new Array<Asset>();
             for (let key in map) {
-
-                let src=  map[key] as unknown as string;
+                let src = map[key] as unknown as string;
                 let fallbackSrc = src;
                 const gameInstanceId = gameLaunchConfig.gameInstanceId;
                 if (isAndroid || isIos) {
@@ -134,7 +135,6 @@ export abstract class DynamicResource extends Resource {
         }
         return this._assets;
     }
-
 }
 
 export class DynamicResourceAssets extends DynamicResource {
@@ -161,7 +161,6 @@ export enum SecondaryFontVariants {
     BoldNormal = "InternalSecondaryFontBoldNormal",
     NormalItalic = "InternalSecondaryFontNormalItalic",
     BoldItalic = "InternalSecondaryFontBoldItalic",
-
 }
 
 export class DynamicResourceFonts extends DynamicResource {
@@ -177,15 +176,14 @@ export const getDynamicResourceFont = (key: PrimaryFontVariants | SecondaryFontV
 };
 
 export type ProjectFontFamily = {
-    fontsCss: string,
-    primaryFontFamily: string,
-    secondaryFontFamily: string,
+    fontsCss: string;
+    primaryFontFamily: string;
+    secondaryFontFamily: string;
 };
 
 let projectFontFamilyStylesheet: ProjectFontFamily = null!;
 
 export const getProjectFontFamilyStylesheet = () => {
-
     if (projectFontFamilyStylesheet != null) {
         return projectFontFamilyStylesheet;
     }
@@ -243,7 +241,6 @@ export const getProjectFontFamilyStylesheet = () => {
         }
     `;
     }
-
 
     const InternalSecondaryFontNormalNormal = getDynamicResourceFont(SecondaryFontVariants.NormalNormal);
     if (InternalSecondaryFontNormalNormal != null) {
@@ -327,5 +324,3 @@ export class StaticResourcesImagePlaceholders extends StaticResource {
 }
 
 export const staticResourcesImagePlaceholders = new StaticResourcesImagePlaceholders();
-
-
