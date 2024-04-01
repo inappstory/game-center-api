@@ -1,5 +1,5 @@
-import {isAndroid, isIos, isWeb} from "../env";
-import {webSource} from "./web/Source";
+import { isAndroid, isIos, isWeb } from "../env";
+import { webSource } from "./web/Source";
 
 export const eventGame = (payload: Record<string, any>) => {
     const name = "eventGame";
@@ -9,11 +9,11 @@ export const eventGame = (payload: Record<string, any>) => {
         }
     } else if (isIos) {
         if (window.webkit.messageHandlers.event) {
-            window.webkit.messageHandlers.event.postMessage(JSON.stringify({name, payload}));
+            window.webkit.messageHandlers.event.postMessage(JSON.stringify({ name, payload }));
         }
     } else if (isWeb) {
         if (webSource.sourceWindow && webSource.sourceWindowOrigin) {
             webSource.sourceWindow.postMessage(["event", name, payload], webSource.sourceWindowOrigin);
         }
     }
-}
+};

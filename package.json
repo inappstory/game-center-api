@@ -9,14 +9,16 @@
     "devDependencies": {
         "@tsconfig/recommended": "^1.0.2",
         "@types/semver": "^7.5.0",
+        "husky": "^9.0.11",
         "npm": "latest"
     },
     "scripts": {
         "prepublish": "npm run build",
         "build": "tsc",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
-        "lint": "tslint -p tsconfig.json"
+        "lint": "prettier --check .",
+        "format": "prettier --write .",
+        "prepare": "husky"
     },
     "files": [
         "lib/**/*"

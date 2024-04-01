@@ -1,9 +1,9 @@
-import {GameLaunchConfig} from "../gameLaunchConfig.h";
-import {isObject} from "../helpers/isObject";
-import {gameLaunchConfig, setGameLaunchConfig} from "../gameLaunchConfig";
-import {iosMh, isAndroid, isIos, isWeb} from "../env";
-import {webSource} from "./web/Source";
-import {createNonce} from "../createNonce";
+import { GameLaunchConfig } from "../gameLaunchConfig.h";
+import { isObject } from "../helpers/isObject";
+import { gameLaunchConfig, setGameLaunchConfig } from "../gameLaunchConfig";
+import { iosMh, isAndroid, isIos, isWeb } from "../env";
+import { webSource } from "./web/Source";
+import { createNonce } from "../createNonce";
 
 declare global {
     interface Window {
@@ -32,7 +32,7 @@ window.gameLoadingInfo = {
     state: "before gameReader API creation",
     description: "",
     error: "",
-}
+};
 
 type GameReaderInit = {
     _e: Array<() => void>;
@@ -43,20 +43,23 @@ const gameReader: GameReaderInit = (function () {
     self._e = self._e || [];
     if (self._e) {
         for (let i = 0; i < self._e.length; i++) {
-            setTimeout((function (cb: () => void, i: number) {
-                return function () {
-                    try {
-                        window.gameLoadingInfo.state = "before call gameReaderInit queue";
-                        window.gameLoadingInfo.description = "index: " + i;
-                        cb();
-                        window.gameLoadingInfo.state = "after call gameReaderInit queue";
-                        window.gameLoadingInfo.description = "index: " + i;
-                    } catch (e) {
-                        window._sendErrorLog && window._sendErrorLog({src: "gameReaderInit queue", message: (e as Error).message, stack: (e as Error).stack});
-                        console.error(e);
-                    }
-                }
-            })(self._e[i], i));
+            setTimeout(
+                (function (cb: () => void, i: number) {
+                    return function () {
+                        try {
+                            window.gameLoadingInfo.state = "before call gameReaderInit queue";
+                            window.gameLoadingInfo.description = "index: " + i;
+                            cb();
+                            window.gameLoadingInfo.state = "after call gameReaderInit queue";
+                            window.gameLoadingInfo.description = "index: " + i;
+                        } catch (e) {
+                            window._sendErrorLog &&
+                                window._sendErrorLog({ src: "gameReaderInit queue", message: (e as Error).message, stack: (e as Error).stack });
+                            console.error(e);
+                        }
+                    };
+                })(self._e[i], i)
+            );
         }
     }
     self.ready = function (cb) {
@@ -68,7 +71,7 @@ const gameReader: GameReaderInit = (function () {
                 window.gameLoadingInfo.state = "after call gameReaderInit ready";
                 window.gameLoadingInfo.description = "";
             } catch (e) {
-                window._sendErrorLog && window._sendErrorLog({src: "gameReaderInit ready", message: (e as Error).message, stack: (e as Error).stack});
+                window._sendErrorLog && window._sendErrorLog({ src: "gameReaderInit ready", message: (e as Error).message, stack: (e as Error).stack });
                 console.error(e);
             }
         });
@@ -79,7 +82,6 @@ const gameReader: GameReaderInit = (function () {
 window.gameReader = gameReader;
 
 export const createInitGame = (initLocalData: () => Promise<void>, cb?: () => void) => {
-
     window.initGame = async function (config: GameLaunchConfig) {
         try {
             window.gameLoadingInfo.state = "before call initGame";
@@ -107,9 +109,8 @@ export const createInitGame = (initLocalData: () => Promise<void>, cb?: () => vo
 
             window.gameLoadingInfo.state = "after call initGame";
             window.gameLoadingInfo.description = JSON.stringify(config);
-
         } catch (e) {
-            window._sendErrorLog && window._sendErrorLog({src: "initGame", message: (e as Error).message, stack: (e as Error).stack});
+            window._sendErrorLog && window._sendErrorLog({ src: "initGame", message: (e as Error).message, stack: (e as Error).stack });
             console.error(e);
         }
     };
@@ -137,25 +138,31 @@ export const gameLoadedSdkCallback = (config?: Partial<GameLoadedSdkConfig>) => 
         }
         if (isAndroid) {
             if (window.Android.gameLoaded !== undefined) {
-                window.Android.gameLoaded(JSON.stringify({showClose, backGesture}));
+                window.Android.gameLoaded(JSON.stringify({ showClose, backGesture }));
             }
         } else if (isIos) {
             if (iosMh.gameLoaded !== undefined) {
-                iosMh.gameLoaded.postMessage(JSON.stringify({showClose, backGesture: false}));
+                iosMh.gameLoaded.postMessage(JSON.stringify({ showClose, backGesture: false }));
             }
         } else if (isWeb) {
             if (webSource.sourceWindow && webSource.sourceWindowOrigin) {
-                webSource.sourceWindow.postMessage(["gameLoaded", JSON.stringify({
-                    showClose,
-                    backGesture
-                })], webSource.sourceWindowOrigin);
+                webSource.sourceWindow.postMessage(
+                    [
+                        "gameLoaded",
+                        JSON.stringify({
+                            showClose,
+                            backGesture,
+                        }),
+                    ],
+                    webSource.sourceWindowOrigin
+                );
             }
         }
         window.gameLoadingInfo.state = "after call gameLoadedSdkCallback";
         window.gameLoadingInfo.description = "";
         window.gameLoadingInfo.loaded = true;
     } catch (e) {
-        window._sendErrorLog && window._sendErrorLog({src: "gameLoadedSdkCallback", message: (e as Error).message, stack: (e as Error).stack});
+        window._sendErrorLog && window._sendErrorLog({ src: "gameLoadedSdkCallback", message: (e as Error).message, stack: (e as Error).stack });
         console.error(e);
     }
 };
@@ -165,7 +172,7 @@ window.gameLoadingInfo = {
     state: "gameReader API created",
     description: "",
     error: "",
-}
+};
 
 export const gameLoadFailedSdkCallback = (reason: string, canTryReload: boolean) => {
     if (!window.gameLoadingInfo.loaded) {
@@ -177,7 +184,7 @@ export const gameLoadFailedSdkCallback = (reason: string, canTryReload: boolean)
             }
         } else if (isIos) {
             if (iosMh.gameLoadFailed) {
-                iosMh.gameLoadFailed.postMessage(JSON.stringify({reason, canTryReload}));
+                iosMh.gameLoadFailed.postMessage(JSON.stringify({ reason, canTryReload }));
             }
         } else if (isWeb) {
             if (webSource.sourceWindow && webSource.sourceWindowOrigin) {
@@ -186,6 +193,5 @@ export const gameLoadFailedSdkCallback = (reason: string, canTryReload: boolean)
         }
     }
 };
-
 
 window.gameLoadFailed = gameLoadFailedSdkCallback;

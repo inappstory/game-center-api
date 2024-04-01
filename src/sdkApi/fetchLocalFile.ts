@@ -22,12 +22,9 @@ class URLResolver {
         this._link.href = url;
         return this._link.href;
     }
-
 }
 
-
 function fetchLocalAndroid(url: string) {
-
     if (url.substring(0, 1) === "/" || url.substring(0, 2) === "./") {
         url = URLResolver.getInstance().resolve(url);
     }
@@ -55,7 +52,6 @@ export function fetchLocalFile(url: string, remoteUrl?: string): Promise<Respons
             }
         }
 
-
         if (sdkSupportFileAssetsProtocol) {
             return fetchLocalAndroid(url);
         } else {
@@ -67,12 +63,11 @@ export function fetchLocalFile(url: string, remoteUrl?: string): Promise<Respons
                 return fetch(remoteUrl);
             } else {
                 return new Promise(function (resolve, reject) {
-                    var xhr = new XMLHttpRequest;
+                    var xhr = new XMLHttpRequest();
                     xhr.onload = function () {
                         // status 0 in android 9+
                         try {
-                            resolve(new Response(xhr.response,
-                                {status: (xhr.status >= 200 && xhr.status <= 599) ? xhr.status : 200}));
+                            resolve(new Response(xhr.response, { status: xhr.status >= 200 && xhr.status <= 599 ? xhr.status : 200 }));
                         } catch (e) {
                             console.error(e);
                             reject(e);

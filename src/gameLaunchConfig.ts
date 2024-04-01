@@ -1,8 +1,8 @@
-import {GameLaunchConfig, PlaceholderType} from "./gameLaunchConfig.h";
-import {getSemverSdkVersion, isAndroid} from "./env";
+import { GameLaunchConfig, PlaceholderType } from "./gameLaunchConfig.h";
+import { getSemverSdkVersion, isAndroid } from "./env";
 import semver from "semver";
-import {base64url_decode} from "./helpers/base64urlDecode";
-import {staticResourcesImagePlaceholders} from "./gameResources";
+import { base64url_decode } from "./helpers/base64urlDecode";
+import { staticResourcesImagePlaceholders } from "./gameResources";
 
 export const gameLaunchConfig = {} as GameLaunchConfig;
 
@@ -18,7 +18,6 @@ export function setGameLaunchConfig(config: GameLaunchConfig) {
 
     Object.freeze(gameLaunchConfig);
 }
-
 
 export function getGameInstanceId(): number {
     return gameLaunchConfig.gameInstanceId;
@@ -36,7 +35,7 @@ export function getApiBaseUrl() {
     return gameLaunchConfig.clientConfig.apiBaseUrl;
 }
 
-function checkUserId(userId: string|number) {
+function checkUserId(userId: string | number) {
     let emptyUserIdFromSdk = false;
     if (isAndroid) {
         const semverVersion = getSemverSdkVersion();
@@ -57,22 +56,19 @@ function checkUserId(userId: string|number) {
             const offsetForExternalUserId = 21 + tagCount * 4 + 1;
             const externalIdLen = data.charCodeAt(offsetForExternalUserId);
             if (externalIdLen > 0) {
-                gameLaunchConfig.clientConfig && (gameLaunchConfig.clientConfig.userId = data.substring(offsetForExternalUserId + 1, offsetForExternalUserId + 1 + externalIdLen).replace(/\0+$/, ''));
+                gameLaunchConfig.clientConfig &&
+                    (gameLaunchConfig.clientConfig.userId = data
+                        .substring(offsetForExternalUserId + 1, offsetForExternalUserId + 1 + externalIdLen)
+                        .replace(/\0+$/, ""));
             }
         }
-
     }
-
 }
-
 
 function processImagePlaceholders() {
     if (gameLaunchConfig?.clientConfig?.placeholders && Array.isArray(gameLaunchConfig?.clientConfig?.placeholders)) {
         for (let i = 0; i < gameLaunchConfig.clientConfig.placeholders.length; ++i) {
             if (gameLaunchConfig.clientConfig.placeholders[i].type === PlaceholderType.IMAGE) {
-
-
-
                 // if exists in resources
 
                 // @ts-ignore
@@ -82,8 +78,8 @@ function processImagePlaceholders() {
                 gameLaunchConfig.clientConfig.placeholders[i] = {
                     ...gameLaunchConfig.clientConfig.placeholders[i],
                     get value() {
-                        return staticResourcesImagePlaceholders.getAssetByKey(gameLaunchConfig.clientConfig.placeholders[i].name, "")
-                    }
+                        return staticResourcesImagePlaceholders.getAssetByKey(gameLaunchConfig.clientConfig.placeholders[i].name, "");
+                    },
                 };
             }
         }

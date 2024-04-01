@@ -1,10 +1,8 @@
 // pad('0000000000','123',true);
 // '0000000123'
 function pad(pad: string, str: string, padLeft: boolean) {
-    if (typeof str === "undefined")
-        return pad;
-    if (str.length >= pad.length)
-        return str;
+    if (typeof str === "undefined") return pad;
+    if (str.length >= pad.length) return str;
     if (padLeft) {
         return (pad + str).slice(-pad.length);
     } else {

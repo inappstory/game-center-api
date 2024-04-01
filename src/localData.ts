@@ -1,10 +1,9 @@
-import {v4 as uuidV4} from "uuid";
-import {iosMh, isAndroid, isDev, isIos, isWeb} from "./env";
-import {asyncQueue} from "./asyncQueue";
-import {getGameInstanceId} from "./gameLaunchConfig";
-import {webSource} from "./sdkApi/web/Source";
-import {sendIasApiRequest} from "./iasApi";
-
+import { v4 as uuidV4 } from "uuid";
+import { iosMh, isAndroid, isDev, isIos, isWeb } from "./env";
+import { asyncQueue } from "./asyncQueue";
+import { getGameInstanceId } from "./gameLaunchConfig";
+import { webSource } from "./sdkApi/web/Source";
+import { sendIasApiRequest } from "./iasApi";
 
 export class LocalDataMap<K, V> extends Map<K, V> {
     set(key: K, value: V) {
@@ -123,13 +122,12 @@ declare global {
     }
 }
 
-
 window.gameInstanceGetLocalDataCb = function (id: string, plainData: string) {
     let localData = {};
     try {
         localData = JSON.parse(plainData);
     } catch (e) {
-        console.error(e, {inputData: plainData});
+        console.error(e, { inputData: plainData });
     } finally {
         if (asyncQueue.has(id)) {
             const cb = asyncQueue.get(id);
@@ -139,16 +137,14 @@ window.gameInstanceGetLocalDataCb = function (id: string, plainData: string) {
     }
 };
 
-
 // api requests wrapper
 
 const setGameLocalData = async (sendToServer: boolean = true) => {
     const data = Object.fromEntries(gameLocalData);
 
-    const sendDataToServer = () => sendIasApiRequest({method: "PUT", path: "instance-user-data", data: {data}});
+    const sendDataToServer = () => sendIasApiRequest({ method: "PUT", path: "instance-user-data", data: { data } });
 
     const gameInstanceId = getGameInstanceId();
-
 
     if (gameInstanceId == null) {
         // Prevent call with incorrect storyId

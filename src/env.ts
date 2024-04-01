@@ -1,5 +1,5 @@
-import {SemVer} from "semver";
-import {gameLaunchConfig} from "./gameLaunchConfig";
+import { SemVer } from "semver";
+import { gameLaunchConfig } from "./gameLaunchConfig";
 
 const semver = require("semver");
 
@@ -54,5 +54,4 @@ const getSemverSdkVersion = () => {
     return semverSdkVersion;
 };
 
-
-export {isIos, isWeb, isAndroid, iosMh, isDev, getSdkVersion, getSemverSdkVersion};
+export { isIos, isWeb, isAndroid, iosMh, isDev, getSdkVersion, getSemverSdkVersion };

@@ -26,9 +26,7 @@
         "ecmaVersion": 12,
         "sourceType": "module"
     },
-    "plugins": [
-        "@typescript-eslint"
-    ],
+    "plugins": ["@typescript-eslint"],
     "rules": {
         "react/prop-types": "off",
         "react/display-name": "off",
@@ -55,8 +53,5 @@
             }
         ]
     },
-    "ignorePatterns": [
-        "node_modules/",
-        "build/"
-    ]
+    "ignorePatterns": ["node_modules/", "build/"]
 }

@@ -1,20 +1,19 @@
-import {gameLaunchConfig} from "./gameLaunchConfig";
+import { gameLaunchConfig } from "./gameLaunchConfig";
 import { v4 as uuidV4 } from "uuid";
 
 const prepareHeaders = (headers: RequestInfo["headers"]) => ({
-        ...{
-            "Content-Type": "application/json",
-            "Auth-Session-Id": gameLaunchConfig.clientConfig.sessionId,
-            "Authorization": `Bearer ${gameLaunchConfig.clientConfig.apiKey}`,
-            "X-Device-Id": gameLaunchConfig.clientConfig.deviceId,
-            "X-User-Id": gameLaunchConfig.clientConfig.userId ?? "",
-            "X-Request-Id": uuidV4(),
-            "X-User-Agent": gameLaunchConfig.clientConfig.userAgent,
-            "X-App-Package-Id": gameLaunchConfig.clientConfig.appPackageId,
-        },
-        ...headers
-    }
-);
+    ...{
+        "Content-Type": "application/json",
+        "Auth-Session-Id": gameLaunchConfig.clientConfig.sessionId,
+        Authorization: `Bearer ${gameLaunchConfig.clientConfig.apiKey}`,
+        "X-Device-Id": gameLaunchConfig.clientConfig.deviceId,
+        "X-User-Id": gameLaunchConfig.clientConfig.userId ?? "",
+        "X-Request-Id": uuidV4(),
+        "X-User-Agent": gameLaunchConfig.clientConfig.userAgent,
+        "X-App-Package-Id": gameLaunchConfig.clientConfig.appPackageId,
+    },
+    ...headers,
+});
 
 const getBaseUrl = () => {
     let url = gameLaunchConfig.clientConfig.apiBaseUrl;
@@ -33,7 +32,7 @@ export type RequestInfo = {
     path: string;
     data?: Record<string, any>;
     headers?: Record<string, any>;
-}
+};
 export type Response<T> = {
     status: number;
     payload: T;
@@ -61,11 +60,10 @@ export async function sendIasApiRequest<T>(requestInfo: RequestInfo): Promise<Re
         });
 
         result.status = response.status;
-        result.payload = await response.json() as T; // parses JSON response into native JavaScript objects
+        result.payload = (await response.json()) as T; // parses JSON response into native JavaScript objects
         if (response.status >= 200 && response.status < 300) {
             result.isOk = true;
         }
-
     } catch (e) {
         result.error = e;
     }

@@ -1,25 +1,24 @@
 class Source {
-    constructor() {
-    }
+    constructor() {}
 
-    get sourceWindowOrigin(): string|null {
+    get sourceWindowOrigin(): string | null {
         return this._sourceWindowOrigin;
     }
 
-    set sourceWindowOrigin(value: string|null) {
+    set sourceWindowOrigin(value: string | null) {
         this._sourceWindowOrigin = value;
     }
 
-    get sourceWindow(): Window|null {
+    get sourceWindow(): Window | null {
         return this._sourceWindow;
     }
 
-    set sourceWindow(value: Window|null) {
+    set sourceWindow(value: Window | null) {
         this._sourceWindow = value;
     }
 
-    private _sourceWindow: Window|null = null;
-    private _sourceWindowOrigin: string|null = null;
+    private _sourceWindow: Window | null = null;
+    private _sourceWindowOrigin: string | null = null;
 }
 
 export const webSource = new Source();

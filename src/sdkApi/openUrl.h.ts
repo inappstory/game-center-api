@@ -1,4 +1,4 @@
 export type OpenUrlOptions = {
-    url: string,
-    closeGameReader?: boolean
+    url: string;
+    closeGameReader?: boolean;
 };

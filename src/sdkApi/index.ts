@@ -1,33 +1,30 @@
 /**
  * Public API for SDK
  */
-import {SdkApiCallbacks} from "./index.h";
-import {createInitGame} from "./initGame";
-import {initLocalData} from "../localData";
-import {isAndroid, isIos, isWeb} from "../env";
-import {webSource} from "./web/Source";
-import {isFunction} from "../helpers/isFunction";
-import {isObject} from "../helpers/isObject";
-import {OpenStoryOptions} from "./openStory.h";
-
+import { SdkApiCallbacks } from "./index.h";
+import { createInitGame } from "./initGame";
+import { initLocalData } from "../localData";
+import { isAndroid, isIos, isWeb } from "../env";
+import { webSource } from "./web/Source";
+import { isFunction } from "../helpers/isFunction";
+import { isObject } from "../helpers/isObject";
+import { OpenStoryOptions } from "./openStory.h";
 
 let beforeUnmount: (() => void) | undefined;
 export const createSdkApi = ({
-                                 mounted,
-                                 beforeUnmount: beforeUnmountCb,
-                                 onSdkCloseGameReaderIntent,
-                                 onPause,
-                                 onResume,
-                                 onBackGesture,
-                                 onAudioFocusChange
-                             }: Partial<SdkApiCallbacks>) => {
-
+    mounted,
+    beforeUnmount: beforeUnmountCb,
+    onSdkCloseGameReaderIntent,
+    onPause,
+    onResume,
+    onBackGesture,
+    onAudioFocusChange,
+}: Partial<SdkApiCallbacks>) => {
     beforeUnmount = beforeUnmountCb;
 
-    createInitGame( async () => initLocalData(), mounted);
+    createInitGame(async () => initLocalData(), mounted);
 
     window.closeGameReader = () => {
-
         if (onSdkCloseGameReaderIntent) {
             onSdkCloseGameReaderIntent();
         } else {
@@ -79,51 +76,54 @@ export const createSdkApi = ({
                 //     return;
                 const data = event.data;
 
-
                 if (Array.isArray(data)) {
                     switch (data[0]) {
-                        case "initGame": {
-                            initWebSource(event);
-                            // TODO - SDK version (second arg)
-                            isFunction(window.initGame) && window.initGame(data[1]);
-                        }
-                            break;
-                        case "closeGameReader": {
-                            window.closeGameReader();
-                        }
-                            break;
-                        case "shareComplete": {
-                            if (data[1]) {
-                                const parsedData = data[1];
-                                window.share_complete(parsedData.id, parsedData.isSuccess);
+                        case "initGame":
+                            {
+                                initWebSource(event);
+                                // TODO - SDK version (second arg)
+                                isFunction(window.initGame) && window.initGame(data[1]);
                             }
-                        }
                             break;
-                        case "cb": {
-                            if (data[1] && isObject(data[1])) {
-                                const params = data[1] as { cb: string; plainData: string; arguments: string };
-
-                                if (params['cb'] === "initGame") {
-                                    initWebSource(event);
+                        case "closeGameReader":
+                            {
+                                window.closeGameReader();
+                            }
+                            break;
+                        case "shareComplete":
+                            {
+                                if (data[1]) {
+                                    const parsedData = data[1];
+                                    window.share_complete(parsedData.id, parsedData.isSuccess);
                                 }
+                            }
+                            break;
+                        case "cb":
+                            {
+                                if (data[1] && isObject(data[1])) {
+                                    const params = data[1] as { cb: string; plainData: string; arguments: string };
 
-                                // sendApi cb
-                                if (params["cb"] && params["plainData"]) {
-                                    // @ts-ignore
-                                    window[params["cb"]](params["plainData"]);
-                                } else if (params["cb"] && params["arguments"]) {
-                                    try {
-                                        const args = JSON.parse(params["arguments"]);
-                                        if (Array.isArray(args)) {
-                                            // @ts-ignore
-                                            window[params["cb"]].apply(this, args);
+                                    if (params["cb"] === "initGame") {
+                                        initWebSource(event);
+                                    }
+
+                                    // sendApi cb
+                                    if (params["cb"] && params["plainData"]) {
+                                        // @ts-ignore
+                                        window[params["cb"]](params["plainData"]);
+                                    } else if (params["cb"] && params["arguments"]) {
+                                        try {
+                                            const args = JSON.parse(params["arguments"]);
+                                            if (Array.isArray(args)) {
+                                                // @ts-ignore
+                                                window[params["cb"]].apply(this, args);
+                                            }
+                                        } catch (e) {
+                                            console.error(e);
                                         }
-                                    } catch (e) {
-                                        console.error(e);
                                     }
                                 }
                             }
-                        }
                             break;
                     }
                 }
@@ -132,7 +132,6 @@ export const createSdkApi = ({
         );
     }
 };
-
 
 export type CloseGameReaderOptions = {
     [key: string]: any;
@@ -144,7 +143,6 @@ export type CloseGameReaderOptions = {
  * API method for close Reader from game
  */
 const sdkCloseGameReader = (data?: CloseGameReaderOptions) => {
-
     beforeUnmount && beforeUnmount();
 
     const devPayload = data ?? {};
@@ -153,19 +151,19 @@ const sdkCloseGameReader = (data?: CloseGameReaderOptions) => {
 
     if (isAndroid) {
         // {openUrl: null, openStory: {id: 1, slideIndex: 0}}
-        const config = JSON.stringify({openUrl, openStory});
+        const config = JSON.stringify({ openUrl, openStory });
 
         window.Android.gameComplete(JSON.stringify(data), JSON.stringify(devPayload), config);
-
-
     } else if (isIos) {
         // {openUrl: null, openStory: {id: 1, slideIndex: 0}}
-        window.webkit.messageHandlers.gameComplete.postMessage(JSON.stringify({
-            data: data,
-            result: devPayload,
-            openUrl,
-            openStory
-        }));
+        window.webkit.messageHandlers.gameComplete.postMessage(
+            JSON.stringify({
+                data: data,
+                result: devPayload,
+                openUrl,
+                openStory,
+            })
+        );
     } else if (isWeb) {
         if (webSource.sourceWindow && webSource.sourceWindowOrigin) {
             webSource.sourceWindow.postMessage(["gameComplete", data, devPayload, null, openStory], webSource.sourceWindowOrigin);
@@ -193,5 +191,4 @@ export const reloadGameReader = () => {
             webSource.sourceWindow.postMessage(["reloadGameReader"], webSource.sourceWindowOrigin);
         }
     }
-
-}
+};

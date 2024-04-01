@@ -1,19 +1,17 @@
-import {v4 as uuidV4} from "uuid";
-import {asyncQueue} from "../asyncQueue";
-import {iosMh, isAndroid, isIos, isWeb} from "../env";
-import {webSource} from "./web/Source";
+import { v4 as uuidV4 } from "uuid";
+import { asyncQueue } from "../asyncQueue";
+import { iosMh, isAndroid, isIos, isWeb } from "../env";
+import { webSource } from "./web/Source";
 
 export type ShareData = Partial<{
     title: string | null;
     text: string | null;
     url: string | null;
-    files:
-        Array<{
-            file: string;
-            name: string;
-            type: string;
-        } | null
-        >;
+    files: Array<{
+        file: string;
+        name: string;
+        type: string;
+    } | null>;
 }>;
 
 declare global {
@@ -24,7 +22,6 @@ declare global {
 
 export const share = async (config: ShareData): Promise<boolean> => {
     return new Promise<boolean>((resolve, reject) => {
-
         const id = uuidV4();
 
         asyncQueue.set(id, (plainData: any) => {
@@ -37,7 +34,7 @@ export const share = async (config: ShareData): Promise<boolean> => {
             }
         } else if (isIos) {
             if (iosMh.share && iosMh.share.postMessage) {
-                iosMh.share.postMessage(JSON.stringify({id: id, config: config}));
+                iosMh.share.postMessage(JSON.stringify({ id: id, config: config }));
             }
         } else if (isWeb) {
             if (config.files && Array.isArray(config.files) && config.files.length > 0) {
@@ -50,7 +47,6 @@ export const share = async (config: ShareData): Promise<boolean> => {
                 }
             }
         }
-
     });
 };
 
@@ -62,6 +58,6 @@ window.share_complete = function (requestId: string, isSuccess: boolean) {
             asyncQueue.delete(requestId);
         }
     } catch (e) {
-        console.error(e, {inputData: {requestId, isSuccess}});
+        console.error(e, { inputData: { requestId, isSuccess } });
     }
 };
