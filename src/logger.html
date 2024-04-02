@@ -16,9 +16,7 @@
             for (var i = 0; i < keys.length; ++i) {
                 formData.append(keys[i], payload[keys[i]]);
             }
-            navigator.sendBeacon(
-                "https://games.inappstory.com/" + window.iasGamePackageName + "/" + window.iasGameBuildVersion + "/error.log",
-                formData);
+            navigator.sendBeacon("https://games.inappstory.com/" + window.iasGamePackageName + "/" + window.iasGameBuildVersion + "/error.log", formData);
             ++messagesCount;
         }
     };
@@ -53,7 +51,7 @@
             colno: columnNo,
             source: url,
             errorMessage: error ? error.message : "",
-            errorStack: error ? error.stack : ""
+            errorStack: error ? error.stack : "",
         };
         if (error) {
             payload.errorMessage = error.message;
@@ -80,7 +78,7 @@
         }
 
         return false;
-    }
+    };
 
     window.onunhandledrejection = function (event) {
         var payload = {
@@ -90,15 +88,13 @@
         window._sendErrorLog(payload);
     };
 
-
-
     window.console.log = function () {
         var messages = Array.prototype.slice.call(arguments);
         console.logOrigin(messages);
         if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.logHandler && messages.length) {
             window.webkit.messageHandlers.logHandler.postMessage(messages[0]);
         }
-    }
+    };
 
     window.console.info = function () {
         var messages = Array.prototype.slice.call(arguments);
@@ -106,7 +102,7 @@
         if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.infoHandler && messages.length) {
             window.webkit.messageHandlers.infoHandler.postMessage(messages[0]);
         }
-    }
+    };
 
     window.console.debug = function () {
         var messages = Array.prototype.slice.call(arguments);
@@ -114,7 +110,7 @@
         if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.debugOrigin && messages.length) {
             window.webkit.messageHandlers.debugOrigin.postMessage(messages[0]);
         }
-    }
+    };
 
     window.console.debug = function () {
         var messages = Array.prototype.slice.call(arguments);
@@ -122,7 +118,7 @@
         if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.debugHandler && messages.length) {
             window.webkit.messageHandlers.debugHandler.postMessage(messages[0]);
         }
-    }
+    };
 
     window.console.warn = function () {
         var messages = Array.prototype.slice.call(arguments);
@@ -130,14 +126,12 @@
         if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.warnHandler && messages.length) {
             window.webkit.messageHandlers.warnHandler.postMessage(messages[0]);
         }
-    }
-
-
+    };
 
     window.console.error = function () {
         var messages = Array.prototype.slice.call(arguments);
         var payload = {
-            type: "console error"
+            type: "console error",
         };
         for (var i = 0; i < messages.length; ++i) {
             var field = "message" + String(i);
@@ -157,5 +151,5 @@
         if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.errorHandler && messages.length) {
             window.webkit.messageHandlers.errorHandler.postMessage(messages[0]);
         }
-    }
+    };
 </script>
