@@ -6,7 +6,11 @@ import { ResourceInterface } from "./ResourceManager";
 import { PlaceholderType } from "./gameLaunchConfig.h";
 
 class Asset implements ResourceInterface {
-    constructor(private readonly _key: string, private readonly _originUri: string, private readonly _originFallbackUri: string) {
+    constructor(
+        private readonly _key: string,
+        private readonly _originUri: string,
+        private readonly _originFallbackUri: string
+    ) {
         this._cacheUri = this._originUri;
     }
 
