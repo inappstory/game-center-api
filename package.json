@@ -1,6 +1,6 @@
 {
     "name": "@inappstory/game-center-api",
-    "version": "1.0.1-rc.1",
+    "version": "1.0.1-rc.2",
     "description": "",
     "dependencies": {
         "semver": "^7.3.8",
@@ -8,7 +8,6 @@
     },
     "devDependencies": {
         "@tsconfig/recommended": "^1.0.2",
-        "@types/node": "^20.12.2",
         "@types/semver": "^7.5.0",
         "husky": "^9.0.11",
         "npm": "latest"
