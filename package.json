@@ -20,7 +20,6 @@
         "typescript": "^5.4.3"
     },
     "scripts": {
-        "prepublish": "npm run build",
         "build": "tsc",
         "test": "echo \"Error: no test specified\" && exit 1",
         "lint": "prettier --check .",
