@@ -38,7 +38,7 @@
     "types": "lib/index.d.ts",
     "repository": {
         "type": "git",
-        "url": "https://github.com/inappstory/game-center-api"
+        "url": "git+https://github.com/inappstory/game-center-api.git"
     },
     "bugs": {
         "url": "https://github.com/inappstory/game-center-api/issues"
