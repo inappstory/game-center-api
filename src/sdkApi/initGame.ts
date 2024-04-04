@@ -81,7 +81,7 @@ const gameReader: GameReaderInit = (function () {
 
 window.gameReader = gameReader;
 
-export const createInitGame = (initLocalData: () => Promise<void>, cb?: () => void) => {
+export const createInitGame = (initLocalData: () => Promise<void>, mounted = () => {}) => {
     window.initGame = async function (config: GameLaunchConfig) {
         try {
             window.gameLoadingInfo.state = "before call initGame";
@@ -105,7 +105,7 @@ export const createInitGame = (initLocalData: () => Promise<void>, cb?: () => vo
 
             await initLocalData();
 
-            cb && cb();
+            mounted();
 
             window.gameLoadingInfo.state = "after call initGame";
             window.gameLoadingInfo.description = JSON.stringify(config);

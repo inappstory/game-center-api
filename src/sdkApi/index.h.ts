@@ -1,4 +1,6 @@
-export type SdkApiCallbacks = {
+import { Placeholder } from "../gameLaunchConfig.h";
+
+export type SdkApiCallbacks = Partial<{
     mounted: () => void;
     beforeUnmount: () => void;
     onSdkCloseGameReaderIntent: () => void; // for instance - click on GameReader backdrop on Tablet or Desktop
@@ -6,4 +8,5 @@ export type SdkApiCallbacks = {
     onResume: () => void;
     onBackGesture: () => void;
     onAudioFocusChange: (focusChange: number) => void;
-};
+    filterPlaceholders: (placeholders: Placeholder[]) => Placeholder[];
+}>;

@@ -1,10 +1,13 @@
-import { GameLaunchConfig, PlaceholderType } from "./gameLaunchConfig.h";
+import { PlaceholderType, type GameLaunchConfig, type Placeholder } from "./gameLaunchConfig.h";
 import { getSemverSdkVersion, isAndroid } from "./env";
 import semver from "semver";
 import { base64url_decode } from "./helpers/base64urlDecode";
 import { staticResourcesImagePlaceholders } from "./gameResources";
 
 export const gameLaunchConfig = {} as GameLaunchConfig;
+export const gameLaunchHandlers = {
+    filterPlaceholders: (placeholders: Placeholder[]) => placeholders,
+};
 
 export function setGameLaunchConfig(config: GameLaunchConfig) {
     for (const key in config) {
@@ -67,21 +70,22 @@ function checkUserId(userId: string | number) {
 
 function processImagePlaceholders() {
     if (gameLaunchConfig?.clientConfig?.placeholders && Array.isArray(gameLaunchConfig?.clientConfig?.placeholders)) {
-        for (let i = 0; i < gameLaunchConfig.clientConfig.placeholders.length; ++i) {
-            if (gameLaunchConfig.clientConfig.placeholders[i].type === PlaceholderType.IMAGE) {
-                // if exists in resources
+        const placeholders = gameLaunchHandlers.filterPlaceholders(gameLaunchConfig.clientConfig.placeholders);
 
-                // @ts-ignore
-                gameLaunchConfig.clientConfig.placeholders[i].originValue = String(gameLaunchConfig.clientConfig.placeholders[i].value);
-                // @ts-ignore
-                gameLaunchConfig.clientConfig.placeholders[i].value = undefined;
-                gameLaunchConfig.clientConfig.placeholders[i] = {
-                    ...gameLaunchConfig.clientConfig.placeholders[i],
-                    get value() {
-                        return staticResourcesImagePlaceholders.getAssetByKey(gameLaunchConfig.clientConfig.placeholders[i].name, "");
+        for (let i = 0; i < placeholders.length; ++i) {
+            const placeholder = placeholders[i];
+
+            if (placeholder.type === PlaceholderType.IMAGE) {
+                placeholder.originValue = String(placeholder.value);
+
+                Object.defineProperty(placeholder, "value", {
+                    get: () => {
+                        return staticResourcesImagePlaceholders.getAssetByKey(placeholder.name, "");
                     },
-                };
+                });
             }
         }
+
+        gameLaunchConfig.clientConfig.placeholders = placeholders;
     }
 }

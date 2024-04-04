@@ -9,6 +9,7 @@ import { webSource } from "./web/Source";
 import { isFunction } from "../helpers/isFunction";
 import { isObject } from "../helpers/isObject";
 import { OpenStoryOptions } from "./openStory.h";
+import { gameLaunchHandlers } from "../gameLaunchConfig";
 
 let beforeUnmount: (() => void) | undefined;
 export const createSdkApi = ({
@@ -19,8 +20,10 @@ export const createSdkApi = ({
     onResume,
     onBackGesture,
     onAudioFocusChange,
-}: Partial<SdkApiCallbacks>) => {
+    filterPlaceholders,
+}: SdkApiCallbacks) => {
     beforeUnmount = beforeUnmountCb;
+    gameLaunchHandlers.filterPlaceholders = filterPlaceholders ?? gameLaunchHandlers.filterPlaceholders;
 
     createInitGame(async () => initLocalData(), mounted);
 

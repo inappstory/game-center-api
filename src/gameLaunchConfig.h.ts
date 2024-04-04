@@ -9,6 +9,7 @@ export type Placeholder = {
     type: PlaceholderType;
     name: string;
     value: string;
+    originValue?: string;
 };
 
 export enum ScreenOrientation {

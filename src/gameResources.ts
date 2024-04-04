@@ -314,10 +314,7 @@ export class StaticResourcesImagePlaceholders extends StaticResource {
     protected rawMapGetter(): Record<string, string> {
         let map: Record<string, string> = {};
         for (const placeholder of gameLaunchConfig.clientConfig.placeholders) {
-            if (placeholder.type === PlaceholderType.IMAGE) {
-                // @ts-ignore
-                map[placeholder.name] = placeholder.originValue;
-            }
+            if (placeholder.type === PlaceholderType.IMAGE) map[placeholder.name] = placeholder.originValue ?? "";
         }
         return map;
     }
