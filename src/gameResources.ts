@@ -5,20 +5,22 @@ import { isAndroid, isIos } from "./env";
 import { ResourceInterface } from "./ResourceManager";
 import { PlaceholderType } from "./gameLaunchConfig.h";
 
-class Asset implements ResourceInterface {
+export class Resource implements ResourceInterface {
+    private _cacheUri: string = "";
+
     constructor(
         private readonly _key: string,
+        private readonly _uri: string,
         private readonly _originUri: string,
-        private readonly _originFallbackUri: string
+        private readonly _orderOfFetch: number
     ) {
-        this._cacheUri = this._originUri;
+        this._cacheUri = this._uri;
     }
 
     get key() {
         return this._key;
     }
 
-    private _cacheUri: string = "";
     setCacheUri(uri: string): void {
         this._cacheUri = uri;
     }
@@ -27,21 +29,27 @@ class Asset implements ResourceInterface {
         return this._cacheUri;
     }
 
+    unsetCacheUri(): void {
+        this._cacheUri = this._uri;
+    }
+
+    getUri(): string {
+        return this._uri;
+    }
+
     getOriginUri(): string {
         return this._originUri;
     }
 
-    unsetCacheUri(): void {
-        this._cacheUri = this._originUri;
-    }
-
-    getOriginFallbackUri(): string {
-        return this._originFallbackUri;
+    getOrderOfFetch(): number {
+        return 0;
     }
 }
 
-export abstract class Resource implements Iterable<ResourceInterface> {
-    constructor(private readonly _onPreloadDoneCb?: () => void) {}
+export abstract class ResourceList implements Iterable<ResourceInterface> {
+    protected orderOfFetch = 0;
+
+    constructor() {}
 
     get assets() {
         // get keys from Asset
@@ -57,7 +65,7 @@ export abstract class Resource implements Iterable<ResourceInterface> {
         return defaultValue;
     }
 
-    protected _assets: Array<Asset> | undefined = undefined;
+    protected _assets: Array<Resource> | undefined = undefined;
 
     protected rawMapGetter(): Record<string, string> {
         return {};
@@ -66,20 +74,21 @@ export abstract class Resource implements Iterable<ResourceInterface> {
     protected get __assets() {
         if (this._assets == null) {
             const map = this.rawMapGetter();
-            this._assets = new Array<Asset>();
+            this._assets = new Array<Resource>();
             for (let key in map) {
                 let src = map[key] as unknown as string;
-                let fallbackSrc = src;
-                const gameInstanceId = gameLaunchConfig.gameInstanceId;
-                if (isAndroid || isIos) {
-                    src = `./resources_${gameInstanceId}/${key}`;
-                }
 
-                this._assets.push(new Asset(key, src, fallbackSrc));
+                this._assets.push(new Resource(key, this.prepareSrc(src, key), src, this.orderOfFetch));
             }
         }
         return this._assets;
     }
+
+    protected prepareSrc(src: string, key: string) {
+        return src;
+    }
+
+    protected onCacheDone() {}
 
     [Symbol.iterator]() {
         let pointer = 0;
@@ -103,41 +112,20 @@ export abstract class Resource implements Iterable<ResourceInterface> {
     }
 }
 
-export abstract class StaticResource extends Resource {
-    protected get __assets() {
-        if (this._assets == null) {
-            const map = this.rawMapGetter();
-            this._assets = new Array<Asset>();
-            for (let key in map) {
-                let src = map[key] as unknown as string;
-                this._assets.push(new Asset(key, src, src));
-            }
-        }
-        return this._assets;
+export abstract class StaticResourceList extends ResourceList {
+    protected override orderOfFetch = 1;
+}
+
+export abstract class DynamicResourceList extends ResourceList {
+    protected override orderOfFetch = 2;
+
+    protected override prepareSrc(src: string, key: string) {
+        if (isAndroid || isIos) return `./resources_${gameLaunchConfig.gameInstanceId}/${key}`;
+        else return src;
     }
 }
 
-export abstract class DynamicResource extends Resource {
-    protected get __assets() {
-        if (this._assets == null) {
-            const map = this.rawMapGetter();
-            this._assets = new Array<Asset>();
-            for (let key in map) {
-                let src = map[key] as unknown as string;
-                let fallbackSrc = src;
-                const gameInstanceId = gameLaunchConfig.gameInstanceId;
-                if (isAndroid || isIos) {
-                    src = `./resources_${gameInstanceId}/${key}`;
-                }
-
-                this._assets.push(new Asset(key, src, fallbackSrc));
-            }
-        }
-        return this._assets;
-    }
-}
-
-export class DynamicResourceAssets extends DynamicResource {
+export class DynamicResourceAssets extends DynamicResourceList {
     protected rawMapGetter(): Record<string, string> {
         return (gameLaunchConfig?.gameResources?.assets ?? {}) as unknown as Record<string, string>;
     }
@@ -163,7 +151,7 @@ export enum SecondaryFontVariants {
     BoldItalic = "InternalSecondaryFontBoldItalic",
 }
 
-export class DynamicResourceFonts extends DynamicResource {
+export class DynamicResourceFonts extends DynamicResourceList {
     protected rawMapGetter(): Record<string, string> {
         return (gameLaunchConfig?.gameResources?.fonts ?? {}) as unknown as Record<string, string>;
     }
@@ -310,12 +298,14 @@ export const getProjectFontFamilyStylesheet = () => {
     return projectFontFamilyStylesheet;
 };
 
-export class StaticResourcesImagePlaceholders extends StaticResource {
+export class StaticResourcesImagePlaceholders extends StaticResourceList {
     protected rawMapGetter(): Record<string, string> {
         let map: Record<string, string> = {};
+
         for (const placeholder of gameLaunchConfig.clientConfig.placeholders) {
             if (placeholder.type === PlaceholderType.IMAGE) map[placeholder.name] = placeholder.originValue ?? "";
         }
+
         return map;
     }
 }

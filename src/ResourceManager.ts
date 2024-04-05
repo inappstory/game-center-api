@@ -1,5 +1,5 @@
 import { fetchLocalFile } from "./sdkApi/fetchLocalFile";
-import { Resource } from "./gameResources";
+import { type ResourceList } from "./gameResources";
 
 export interface ResourceInterface {
     // set cache uri to object internal variable
@@ -7,24 +7,36 @@ export interface ResourceInterface {
 
     getCacheUri(): string;
 
-    getOriginUri(): string;
+    getUri(): string;
 
     // for case when resource at getOriginUri is unavailable (Android SDK before 1.18.0)
-    getOriginFallbackUri(): string;
+    getOriginUri(): string;
 
     unsetCacheUri(): void;
+
+    getOrderOfFetch(): number;
 
     key: string;
 }
 
 let instance: ResourceManager;
 
-export class ResourceManager {
-    private constructor(private readonly srcInterfaces: Array<Resource>) {}
+type CacheTree = Record<
+    string,
+    {
+        resourceForFetch: ResourceInterface;
+        relatedResources: ResourceInterface[];
+    }
+>;
 
-    public static createInstance(srcInterfaces: Array<Resource>) {
+export class ResourceManager {
+    private cacheTree: CacheTree = {};
+
+    private constructor(private readonly resLists: Array<ResourceList>) {}
+
+    public static createInstance(resLists: Array<ResourceList>) {
         if (instance == null) {
-            instance = new ResourceManager(srcInterfaces);
+            instance = new ResourceManager(resLists);
         }
     }
 
@@ -35,65 +47,81 @@ export class ResourceManager {
         return instance;
     }
 
-    public preloadAllResources() {
-        const promises: Array<Promise<void>> = [];
-        for (let key in this.srcInterfaces) {
-            const srcInterfacePromises: Array<Promise<void>> = [];
-            for (let resource of this.srcInterfaces[key]) {
-                const promise = (resource => {
-                    return new Promise<void>(async (resolve, reject) => {
-                        let objectUrl = await this.createObjectUrlByUri(resource.key, resource.getOriginUri());
-                        if (!objectUrl) {
-                            objectUrl = await this.createObjectUrlByUri(resource.key, resource.getOriginFallbackUri());
-                        }
-                        if (objectUrl) {
-                            resource.setCacheUri(objectUrl);
-                            resolve();
-                        } else {
-                            resolve();
-                        }
-                    });
-                })(resource);
-                srcInterfacePromises.push(promise);
-                promises.push(promise);
+    private addResourceToCacheTree = (resource: ResourceInterface) => {
+        const originUri = resource.getOriginUri();
+
+        const branch = (this.cacheTree[originUri] = this.cacheTree[originUri] ?? {
+            resourceForFetch: resource,
+            relatedResources: [],
+        });
+
+        branch.relatedResources.push(resource);
+
+        if (resource.getOrderOfFetch() > branch.resourceForFetch.getOrderOfFetch()) branch.resourceForFetch = resource;
+    };
+    private createCacheTree() {
+        for (let srcInterfaceKey in this.resLists) {
+            for (let resource of this.resLists[srcInterfaceKey]) {
+                this.addResourceToCacheTree(resource);
             }
-            ((srcInterface: Resource) =>
-                Promise.all(srcInterfacePromises).then(() => {
-                    if (srcInterface["_onPreloadDoneCb"]) {
-                        srcInterface["_onPreloadDoneCb"]();
-                    }
-                }))(this.srcInterfaces[key]);
         }
-
-        return Promise.all(promises);
     }
+    public async cacheAllResources() {
+        this.createCacheTree();
 
-    private async createObjectUrlByUri(key: string, src: string): Promise<void | string> {
-        if (!src) {
-            return;
+        const promises: Array<Promise<void>> = [];
+
+        for (let resUri in this.cacheTree) {
+            const { resourceForFetch, relatedResources } = this.cacheTree[resUri];
+
+            const promise = ((resourceForFetch, relatedResources) => {
+                return new Promise<void>(async (resolve, reject) => {
+                    const resouceKeys = relatedResources.map(resource => resource.key);
+
+                    let objectUrl = await this.createObjectUrlByUri(resourceForFetch.getUri(), resouceKeys);
+
+                    if (objectUrl === null) objectUrl = await this.createObjectUrlByUri(resourceForFetch.getOriginUri(), resouceKeys);
+
+                    if (objectUrl === null) {
+                        resolve();
+                    } else {
+                        for (const resource of relatedResources) resource.setCacheUri(objectUrl);
+
+                        resolve();
+                    }
+                });
+            })(resourceForFetch, relatedResources);
+
+            promises.push(promise);
         }
+
+        await Promise.all(promises);
+
+        for (const resList of this.resLists) resList["onCacheDone"]();
+    }
+    private async createObjectUrlByUri(src: string, resouceKeys: string[]): Promise<null | string> {
+        if (!src) return null;
+
         try {
             const response = await fetchLocalFile(src);
-            if (response != null) {
-                return URL.createObjectURL(await response.blob());
-            } else {
-                console.warn(`Resource fetching error for ${src}: ${key}`);
-                return;
-            }
+
+            if (response != null) return URL.createObjectURL(await response.blob());
+            else throw "";
         } catch (err) {
-            console.warn(`Resource fetching error for ${src}: ${key}`, err);
-            return;
+            console.warn(`Error to fetch ${src} for related images [${resouceKeys.join(", ")}]`, err);
+
+            return null;
         }
     }
-
     public revokeCache(): void {
-        for (let key in this.srcInterfaces) {
-            for (let resource of this.srcInterfaces[key]) {
-                if (resource.getCacheUri()) {
-                    URL.revokeObjectURL(resource.getCacheUri());
-                    resource.unsetCacheUri();
-                }
-            }
+        for (let resUri in this.cacheTree) {
+            const { resourceForFetch, relatedResources } = this.cacheTree[resUri];
+
+            URL.revokeObjectURL(resourceForFetch.getCacheUri());
+
+            relatedResources.forEach(resource => resource.unsetCacheUri());
         }
+
+        this.cacheTree = {};
     }
 }

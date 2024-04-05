@@ -7,7 +7,7 @@ import {
     dynamicResourceAssets,
     dynamicResourceFonts,
     staticResourcesImagePlaceholders,
-    StaticResource,
+    StaticResourceList,
 } from "./gameResources";
 import { sendIasApiRequest } from "./iasApi";
 import { gameLocalData } from "./localData";
@@ -64,7 +64,7 @@ export {
     dynamicResourceAssets,
     dynamicResourceFonts,
     staticResourcesImagePlaceholders,
-    StaticResource,
+    StaticResourceList,
     eventGame,
     reloadGameReader,
 };
@@ -99,7 +99,7 @@ const GameCenterApi = {
     dynamicResourceAssets,
     dynamicResourceFonts,
     staticResourcesImagePlaceholders,
-    StaticResource,
+    StaticResourceList,
     eventGame,
     reloadGameReader,
 };
