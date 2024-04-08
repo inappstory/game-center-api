@@ -12,7 +12,7 @@ import {
 import { sendIasApiRequest } from "./iasApi";
 import { gameLocalData } from "./localData";
 import { closeGameReader, createSdkApi, reloadGameReader } from "./sdkApi";
-import { gameLoadedSdkCallback } from "./sdkApi/initGame";
+import { gameLoadedSdkCallback, gameLoadFailedSdkCallback } from "./sdkApi/initGame";
 import { openUrl } from "./sdkApi/openUrl";
 import { share } from "./sdkApi/share";
 import { vibrate } from "./sdkApi/vibrate";
@@ -38,6 +38,7 @@ export {
     createSdkApi,
     closeGameReader,
     gameLoadedSdkCallback,
+    gameLoadFailedSdkCallback,
     gameLaunchConfig,
     isIos,
     isWeb,
@@ -73,6 +74,7 @@ const GameCenterApi = {
     createSdkApi,
     closeGameReader,
     gameLoadedSdkCallback,
+    gameLoadFailedSdkCallback,
     gameLaunchConfig,
     isIos,
     isWeb,

@@ -77,15 +77,24 @@ export class ResourceManager {
             const promise = ((resourceForFetch, relatedResources) => {
                 return new Promise<void>(async (resolve, reject) => {
                     const resouceKeys = relatedResources.map(resource => resource.key);
+                    const uri = resourceForFetch.getUri();
+                    const originUri = resourceForFetch.getOriginUri();
 
-                    let objectUrl = await this.createObjectUrlByUri(resourceForFetch.getUri(), resouceKeys);
+                    let objectUrl = await this.createObjectUrlByUri(uri, resouceKeys);
 
-                    if (objectUrl === null) objectUrl = await this.createObjectUrlByUri(resourceForFetch.getOriginUri(), resouceKeys);
+                    if (objectUrl === null && uri !== originUri) objectUrl = await this.createObjectUrlByUri(originUri, resouceKeys);
 
                     if (objectUrl === null) {
-                        resolve();
+                        const image = new Image();
+
+                        image.onload = () => resolve();
+                        image.onerror = () => reject(`Can't load resource for [${resouceKeys.join(", ")}]`);
+
+                        image.src = originUri;
                     } else {
-                        for (const resource of relatedResources) resource.setCacheUri(objectUrl);
+                        for (const resource of relatedResources) {
+                            resource.setCacheUri(objectUrl);
+                        }
 
                         resolve();
                     }
@@ -99,16 +108,16 @@ export class ResourceManager {
 
         for (const resList of this.resLists) resList["onCacheDone"]();
     }
-    private async createObjectUrlByUri(src: string, resouceKeys: string[]): Promise<null | string> {
-        if (!src) return null;
+    private async createObjectUrlByUri(uri: string, resouceKeys: string[]): Promise<null | string> {
+        if (!uri) throw `Resource uri for [${resouceKeys.join(", ")}] can't be empty string`;
 
         try {
-            const response = await fetchLocalFile(src);
+            const response = await fetchLocalFile(uri);
 
             if (response != null) return URL.createObjectURL(await response.blob());
             else throw "";
         } catch (err) {
-            console.warn(`Error to fetch ${src} for related images [${resouceKeys.join(", ")}]`, err);
+            console.warn(`Error to fetch ${uri} for related images [${resouceKeys.join(", ")}]`, err);
 
             return null;
         }
