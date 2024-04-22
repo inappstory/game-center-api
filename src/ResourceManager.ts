@@ -80,24 +80,27 @@ export class ResourceManager {
                     const uri = resourceForFetch.getUri();
                     const originUri = resourceForFetch.getOriginUri();
 
-                    let objectUrl = await this.createObjectUrlByUri(uri, resouceKeys);
+                    await this.cacheResource({
+                        uri,
+                        originUri,
+                        resouceKeys,
+                        onSuccess: objectUrl => {
+                            if (objectUrl === null) {
+                                resolve();
 
-                    if (objectUrl === null && uri !== originUri) objectUrl = await this.createObjectUrlByUri(originUri, resouceKeys);
+                                return;
+                            }
 
-                    if (objectUrl === null) {
-                        const image = new Image();
+                            for (const resource of relatedResources) {
+                                resource.setCacheUri(objectUrl);
+                            }
 
-                        image.onload = () => resolve();
-                        image.onerror = () => reject(`Can't load resource for [${resouceKeys.join(", ")}]`);
-
-                        image.src = originUri;
-                    } else {
-                        for (const resource of relatedResources) {
-                            resource.setCacheUri(objectUrl);
-                        }
-
-                        resolve();
-                    }
+                            resolve();
+                        },
+                        onFail: () => {
+                            reject(`Can't load resource for [${resouceKeys.join(", ")}]`);
+                        },
+                    });
                 });
             })(resourceForFetch, relatedResources);
 
@@ -107,6 +110,33 @@ export class ResourceManager {
         await Promise.all(promises);
 
         for (const resList of this.resLists) resList["onCacheDone"]();
+    }
+
+    public async cacheResource({
+        uri,
+        originUri = uri,
+        resouceKeys = ["outerResource"],
+        onSuccess,
+        onFail,
+    }: {
+        uri: string;
+        originUri?: string;
+        resouceKeys?: string[];
+        onSuccess: (objectUrl: string | null) => void;
+        onFail: () => void;
+    }) {
+        let objectUrl = await this.createObjectUrlByUri(uri, resouceKeys);
+
+        if (objectUrl === null && uri !== originUri) objectUrl = await this.createObjectUrlByUri(originUri, resouceKeys);
+
+        if (objectUrl === null) {
+            const image = new Image();
+
+            image.onload = () => onSuccess(null);
+            image.onerror = () => onFail();
+
+            image.src = originUri;
+        } else onSuccess(objectUrl);
     }
     private async createObjectUrlByUri(uri: string, resouceKeys: string[]): Promise<null | string> {
         if (!uri) throw `Resource uri for [${resouceKeys.join(", ")}] can't be empty string`;
