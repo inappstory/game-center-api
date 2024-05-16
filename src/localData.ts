@@ -25,9 +25,15 @@ export class LocalDataMap<K, V> extends Map<K, V> {
 
         return removed;
     }
+
+    protected init(entries: [K, V][]) {
+        entries.forEach(entrie => super.set(entrie[0], entrie[1]));
+
+        return this;
+    }
 }
 
-export let gameLocalData: LocalDataMap<string, any> = new Map();
+export let gameLocalData: LocalDataMap<string, any> = new LocalDataMap();
 let localDataCreated = false;
 
 export const initLocalData: () => Promise<void> = async () => {
@@ -35,7 +41,7 @@ export const initLocalData: () => Promise<void> = async () => {
         console.warn("Duplicate call of initLocalData. Skipping");
     }
 
-    gameLocalData = new LocalDataMap<string, any>(Object.entries(await getClientLocalData()));
+    (gameLocalData as any).init(Object.entries(await getClientLocalData()));
     localDataCreated = true;
 };
 
