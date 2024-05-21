@@ -10,6 +10,7 @@ import { isFunction } from "../helpers/isFunction";
 import { isObject } from "../helpers/isObject";
 import { OpenStoryOptions } from "./openStory.h";
 import { gameLaunchHandlers } from "../gameLaunchConfig";
+import { asyncQueue } from "../asyncQueue";
 
 let beforeUnmount: (() => void) | undefined;
 export const createSdkApi = ({
@@ -56,6 +57,20 @@ export const createSdkApi = ({
 
     window.handleAudioFocusChange = function (focusChange: number) {
         onAudioFocusChange && onAudioFocusChange(focusChange);
+    };
+
+    window.sdkCb = (payload: string) => {
+        try {
+            const { id, response } = JSON.parse(payload);
+
+            if (asyncQueue.has(id)) {
+                const cb = asyncQueue.get(id);
+                cb(response);
+                asyncQueue.delete(id);
+            }
+        } catch (e) {
+            console.error(e, { inputData: payload });
+        }
     };
 
     // create bridge for web-sdk

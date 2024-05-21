@@ -23,6 +23,10 @@ import { openStory } from "./sdkApi/openStory";
 import { eventGame } from "./sdkApi/events";
 
 import { ResourceManager } from "./ResourceManager";
+import { hasFilePickerApi, openFilePicker } from "./sdkApi/filePicker";
+import { FilePickerResultType, isFilePickerResultFileList, isFilePickerResultLocalFileList, isLocalFile } from "./sdkApi/filePicker.h";
+
+export type { OpenFilePickerProps, SDKFileResponse, LocalFile, LocalFileList, FilePickerResultPayload, FilePickerResult } from "./sdkApi/filePicker.h";
 
 export type { ShareData as SDKShareData } from "./sdkApi/share";
 export type { PrimaryFontVariants as SDKPrimaryFontVariants, SecondaryFontVariants as SDKSecondaryFontVariants } from "./gameResources";
@@ -68,6 +72,12 @@ export {
     StaticResourceList,
     eventGame,
     reloadGameReader,
+    openFilePicker,
+    FilePickerResultType,
+    isFilePickerResultFileList,
+    isFilePickerResultLocalFileList,
+    isLocalFile,
+    hasFilePickerApi,
 };
 
 const GameCenterApi = {
@@ -104,6 +114,12 @@ const GameCenterApi = {
     StaticResourceList,
     eventGame,
     reloadGameReader,
+    openFilePicker,
+    FilePickerResultType,
+    isFilePickerResultFileList,
+    isFilePickerResultLocalFileList,
+    isLocalFile,
+    hasFilePickerApi,
 };
 
 export { GameCenterApi as default };

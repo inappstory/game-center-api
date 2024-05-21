@@ -14,6 +14,7 @@ declare global {
         resumeUI: () => void;
         gameReaderGestureBack: () => void;
         handleAudioFocusChange: (focusChange: number) => void;
+        sdkCb: (payload: string) => void;
         __debug?: boolean;
         _log: (text: string) => void;
         _sendErrorLog: (payload: Record<string, any>) => void;
