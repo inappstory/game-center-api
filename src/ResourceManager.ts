@@ -80,27 +80,23 @@ export class ResourceManager {
                     const uri = resourceForFetch.getUri();
                     const originUri = resourceForFetch.getOriginUri();
 
-                    await this.cacheResource({
-                        uri,
-                        originUri,
-                        resouceKeys,
-                        onSuccess: objectUrl => {
-                            if (objectUrl === null) {
-                                resolve();
+                    try {
+                        const objectUrl = await this.cacheResource({ uri, originUri, resouceKeys });
 
-                                return;
-                            }
-
-                            for (const resource of relatedResources) {
-                                resource.setCacheUri(objectUrl);
-                            }
-
+                        if (objectUrl === originUri) {
                             resolve();
-                        },
-                        onFail: () => {
-                            reject(`Can't load resource for [${resouceKeys.join(", ")}]`);
-                        },
-                    });
+
+                            return;
+                        }
+
+                        for (const resource of relatedResources) {
+                            resource.setCacheUri(objectUrl);
+                        }
+
+                        resolve();
+                    } catch (e) {
+                        reject(`Can't load resource for [${resouceKeys.join(", ")}]`);
+                    }
                 });
             })(resourceForFetch, relatedResources);
 
@@ -116,27 +112,25 @@ export class ResourceManager {
         uri,
         originUri = uri,
         resouceKeys = ["outerResource"],
-        onSuccess,
-        onFail,
     }: {
         uri: string;
         originUri?: string;
         resouceKeys?: string[];
-        onSuccess: (objectUrl: string | null) => void;
-        onFail: () => void;
-    }) {
+    }): Promise<string> {
         let objectUrl = await this.createObjectUrlByUri(uri, resouceKeys);
 
         if (objectUrl === null && uri !== originUri) objectUrl = await this.createObjectUrlByUri(originUri, resouceKeys);
 
-        if (objectUrl === null) {
+        if (objectUrl !== null) return objectUrl;
+
+        return new Promise((resolve, reject) => {
             const image = new Image();
 
-            image.onload = () => onSuccess(null);
-            image.onerror = () => onFail();
+            image.onload = () => resolve(originUri);
+            image.onerror = () => reject();
 
             image.src = originUri;
-        } else onSuccess(objectUrl);
+        });
     }
     private async createObjectUrlByUri(uri: string, resouceKeys: string[]): Promise<null | string> {
         if (!uri) throw `Resource uri for [${resouceKeys.join(", ")}] can't be empty string`;
