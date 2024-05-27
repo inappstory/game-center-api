@@ -9,4 +9,5 @@ export type SdkApiCallbacks = Partial<{
     onBackGesture: () => void;
     onAudioFocusChange: (focusChange: number) => void;
     filterPlaceholders: (placeholders: Placeholder[]) => Placeholder[];
+    gameShouldForeground: () => void;
 }>;

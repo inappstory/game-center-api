@@ -2,7 +2,7 @@
  * Public API for SDK
  */
 import { SdkApiCallbacks } from "./index.h";
-import { createInitGame } from "./initGame";
+import { createGameShouldForeground, createInitGame } from "./initGame";
 import { initLocalData } from "../localData";
 import { isAndroid, isIos, isWeb } from "../env";
 import { webSource } from "./web/Source";
@@ -22,11 +22,14 @@ export const createSdkApi = ({
     onBackGesture,
     onAudioFocusChange,
     filterPlaceholders,
+    gameShouldForeground,
 }: SdkApiCallbacks) => {
     beforeUnmount = beforeUnmountCb;
     gameLaunchHandlers.filterPlaceholders = filterPlaceholders ?? gameLaunchHandlers.filterPlaceholders;
 
     createInitGame(async () => initLocalData(), mounted);
+
+    createGameShouldForeground(gameShouldForeground ?? (() => {}));
 
     window.closeGameReader = () => {
         if (onSdkCloseGameReaderIntent) {
@@ -103,6 +106,10 @@ export const createSdkApi = ({
                                 isFunction(window.initGame) && window.initGame(data[1]);
                             }
                             break;
+                        case "gameShouldForeground": {
+                            window.gameShouldForeground();
+                            break;
+                        }
                         case "closeGameReader":
                             {
                                 window.closeGameReader();

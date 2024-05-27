@@ -1,9 +1,10 @@
 import { GameLaunchConfig } from "../gameLaunchConfig.h";
 import { isObject } from "../helpers/isObject";
 import { gameLaunchConfig, setGameLaunchConfig } from "../gameLaunchConfig";
-import { iosMh, isAndroid, isIos, isWeb } from "../env";
+import { getSemverSdkVersion, iosMh, isAndroid, isIos, isWeb } from "../env";
 import { webSource } from "./web/Source";
 import { createNonce } from "../createNonce";
+const semver = require("semver");
 
 declare global {
     interface Window {
@@ -25,6 +26,7 @@ declare global {
             error: string;
         };
         gameLoadFailed: typeof gameLoadFailedSdkCallback;
+        gameShouldForeground: () => void;
     }
 }
 
@@ -45,7 +47,7 @@ const gameReader: GameReaderInit = (function () {
     if (self._e) {
         for (let i = 0; i < self._e.length; i++) {
             setTimeout(
-                (function (cb: () => void, i: number) {
+                (function (cb: () => void, i: number): () => void {
                     return function () {
                         try {
                             window.gameLoadingInfo.state = "before call gameReaderInit queue";
@@ -139,29 +141,48 @@ export const gameLoadedSdkCallback = (config?: Partial<GameLoadedSdkConfig>) => 
         }
         if (isAndroid) {
             if (window.Android.gameLoaded !== undefined) {
-                window.Android.gameLoaded(JSON.stringify({ showClose, backGesture }));
+                if (isSdkSupportGameShouldForegroundCallback()) {
+                    window.Android.gameLoaded();
+                } else {
+                    // old SDK API style
+                    window.Android.gameLoaded(JSON.stringify({ showClose, backGesture }));
+                }
             }
         } else if (isIos) {
             if (iosMh.gameLoaded !== undefined) {
-                iosMh.gameLoaded.postMessage(JSON.stringify({ showClose, backGesture: false }));
+                if (isSdkSupportGameShouldForegroundCallback()) {
+                    iosMh.gameLoaded.postMessage("");
+                } else {
+                    // old SDK API style
+                    iosMh.gameLoaded.postMessage(JSON.stringify({ showClose, backGesture: false }));
+                }
             }
         } else if (isWeb) {
             if (webSource.sourceWindow && webSource.sourceWindowOrigin) {
-                webSource.sourceWindow.postMessage(
-                    [
-                        "gameLoaded",
-                        JSON.stringify({
-                            showClose,
-                            backGesture,
-                        }),
-                    ],
-                    webSource.sourceWindowOrigin
-                );
+                if (isSdkSupportGameShouldForegroundCallback()) {
+                    webSource.sourceWindow.postMessage(["gameLoaded"], webSource.sourceWindowOrigin);
+                } else {
+                    // old SDK API style
+                    webSource.sourceWindow.postMessage(
+                        [
+                            "gameLoaded",
+                            JSON.stringify({
+                                showClose,
+                                backGesture,
+                            }),
+                        ],
+                        webSource.sourceWindowOrigin
+                    );
+                }
             }
         }
         window.gameLoadingInfo.state = "after call gameLoadedSdkCallback";
         window.gameLoadingInfo.description = "";
         window.gameLoadingInfo.loaded = true;
+
+        if (!isSdkSupportGameShouldForegroundCallback()) {
+            gameOnForegroundResolve();
+        }
     } catch (e) {
         window._sendErrorLog && window._sendErrorLog({ src: "gameLoadedSdkCallback", message: (e as Error).message, stack: (e as Error).stack });
         console.error(e);
@@ -192,7 +213,81 @@ export const gameLoadFailedSdkCallback = (reason: string, canTryReload: boolean)
                 webSource.sourceWindow.postMessage(["gameLoadFailed", reason, canTryReload], webSource.sourceWindowOrigin);
             }
         }
+        gameOnForegroundReject(reason);
     }
 };
 
 window.gameLoadFailed = gameLoadFailedSdkCallback;
+
+export const createGameShouldForeground = (gameShouldForeground: () => void) => {
+    window.gameShouldForeground = gameShouldForeground;
+};
+
+type GameShouldForegroundConfig = Partial<{
+    showClose: boolean; // display native close btn or not
+    backGesture: boolean; // catch native navigator back action (Android only)
+}>;
+
+/**
+ * API method for remove loader screen from Reader
+ */
+export const gameShouldForegroundCallback = (config?: Partial<GameShouldForegroundConfig>) => {
+    let showClose = config?.showClose;
+    if (showClose == null) {
+        showClose = false;
+    }
+    let backGesture = config?.backGesture;
+    if (backGesture == null) {
+        backGesture = true;
+    }
+
+    if (isAndroid) {
+        if (window.Android.gameShouldForegroundCallback) {
+            window.Android.gameShouldForegroundCallback(JSON.stringify({ showClose, backGesture }));
+        }
+    } else if (isIos) {
+        if (iosMh.gameShouldForegroundCallback) {
+            iosMh.gameShouldForegroundCallback.postMessage(JSON.stringify({ showClose, backGesture: false }));
+        }
+    } else if (isWeb) {
+        if (webSource.sourceWindow && webSource.sourceWindowOrigin) {
+            webSource.sourceWindow.postMessage(
+                [
+                    "gameShouldForegroundCallback",
+                    JSON.stringify({
+                        showClose,
+                        backGesture,
+                    }),
+                ],
+                webSource.sourceWindowOrigin
+            );
+        }
+    }
+
+    gameOnForegroundResolve();
+};
+
+export const isSdkSupportGameShouldForegroundCallback = () => {
+    if (isAndroid) {
+        return "gameShouldForegroundCallback" in window.Android;
+    } else if (isIos) {
+        return "gameShouldForegroundCallback" in iosMh;
+    } else if (isWeb) {
+        let support = false;
+        const semverVersion = getSemverSdkVersion();
+        if (semverVersion != null && semverVersion) {
+            // gte(v1, v2): v1 >= v2
+            if (semver.gte(semverVersion, "2.12.0-rc.11")) {
+                support = true;
+            }
+        }
+        return support;
+    }
+};
+
+let gameOnForegroundResolve: () => void = () => {};
+let gameOnForegroundReject: (reason?: any) => void = () => {};
+export const gameOnForeground = new Promise<void>((resolve, reject) => {
+    gameOnForegroundResolve = resolve;
+    gameOnForegroundReject = reject;
+});
