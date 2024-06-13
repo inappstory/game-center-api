@@ -40,22 +40,13 @@ createSdkApi({
 
 ```tsx
 const gameLoaded = () => {
-    if (GameCenterApi.isSdkSupportGameShouldForegroundCallback()) {
-        GameCenterApi.gameLoadedSdkCallback();
-    } else {
-        // fallback for old sdk versions
-        gameShouldForeground();
-    }
+    GameCenterApi.gameLoadedSdkCallback();
 };
 
 const gameStarted = () => {
     setTimeout(() => {
         // Wait for render complete - then remove native loader screen
-        if (GameCenterApi.isSdkSupportGameShouldForegroundCallback()) {
-            GameCenterApi.gameShouldForegroundCallback();
-        } else {
-            GameCenterApi.gameLoadedSdkCallback();
-        }
+        GameCenterApi.gameShouldForegroundCallback();
     }, 50);
 };
 
