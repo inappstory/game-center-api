@@ -12,13 +12,7 @@ import {
 import { sendIasApiRequest } from "./iasApi";
 import { gameLocalData } from "./localData";
 import { closeGameReader, createSdkApi, reloadGameReader } from "./sdkApi";
-import {
-    gameLoadedSdkCallback,
-    gameLoadFailedSdkCallback,
-    gameShouldForegroundCallback,
-    isSdkSupportGameShouldForegroundCallback,
-    gameOnForeground,
-} from "./sdkApi/initGame";
+import { gameLoadedSdkCallback, gameLoadFailedSdkCallback, gameShouldForegroundCallback, gameOnForeground } from "./sdkApi/initGame";
 import { openUrl } from "./sdkApi/openUrl";
 import { share } from "./sdkApi/share";
 import { vibrate } from "./sdkApi/vibrate";
@@ -85,7 +79,6 @@ export {
     isLocalFile,
     hasFilePickerApi,
     gameShouldForegroundCallback,
-    isSdkSupportGameShouldForegroundCallback,
     gameOnForeground,
 };
 
@@ -130,7 +123,6 @@ const GameCenterApi = {
     isLocalFile,
     hasFilePickerApi,
     gameShouldForegroundCallback,
-    isSdkSupportGameShouldForegroundCallback,
     gameOnForeground,
 };
 

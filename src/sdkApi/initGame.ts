@@ -179,7 +179,16 @@ type GameLoadedSdkConfig = Partial<{
 /**
  * API method for remove loader screen from Reader
  */
-export const gameLoadedSdkCallback = (config?: Partial<GameLoadedSdkConfig>) => {
+export const gameLoadedSdkCallback = (): void => {
+    if (isSdkSupportGameShouldForegroundCallback()) {
+        gameLoadedSdkCallbackInternal();
+    } else {
+        /** Old sdk - call shouldForeground, emulate new sdk */
+        window.gameShouldForeground();
+    }
+};
+
+const gameLoadedSdkCallbackInternal = (config?: Partial<GameLoadedSdkConfig>) => {
     window.gameLoadingInfo.state = "before call gameLoadedSdkCallback";
     window.gameLoadingInfo.description = "";
     try {
@@ -289,6 +298,15 @@ type GameShouldForegroundConfig = Partial<{
  * API method for remove loader screen from Reader
  */
 export const gameShouldForegroundCallback = (config?: Partial<GameShouldForegroundConfig>) => {
+    if (isSdkSupportGameShouldForegroundCallback()) {
+        gameShouldForegroundCallbackInternal(config);
+    } else {
+        /** For old sdk - use gameLoadedSdkCallbackInternal with config (for remove splash) */
+        gameLoadedSdkCallbackInternal(config);
+    }
+};
+
+const gameShouldForegroundCallbackInternal = (config?: Partial<GameShouldForegroundConfig>) => {
     let showClose = config?.showClose;
     if (showClose == null) {
         showClose = false;
@@ -324,7 +342,7 @@ export const gameShouldForegroundCallback = (config?: Partial<GameShouldForegrou
     gameOnForegroundResolve();
 };
 
-export const isSdkSupportGameShouldForegroundCallback = () => {
+const isSdkSupportGameShouldForegroundCallback = () => {
     if (isAndroid) {
         return "gameShouldForegroundCallback" in window.Android;
     } else if (isIos) {
