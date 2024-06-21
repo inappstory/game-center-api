@@ -1,4 +1,4 @@
-import { getSdkVersion, getSemverSdkVersion, isAndroid, isDev, isIos, isWeb } from "./env";
+import { getApplicationBuildVersion, getApplicationVersion, getSdkVersion, getSemverSdkVersion, isAndroid, isDev, isIos, isWeb } from "./env";
 import { gameLaunchConfig, getIsDemoMode, getSessionId, getApiBaseUrl } from "./gameLaunchConfig";
 import {
     getDynamicResourceAsset,
@@ -80,6 +80,8 @@ export {
     hasFilePickerApi,
     gameShouldForegroundCallback,
     gameOnForeground,
+    getApplicationVersion,
+    getApplicationBuildVersion,
 };
 
 const GameCenterApi = {
@@ -124,6 +126,8 @@ const GameCenterApi = {
     hasFilePickerApi,
     gameShouldForegroundCallback,
     gameOnForeground,
+    getApplicationVersion,
+    getApplicationBuildVersion,
 };
 
 export { GameCenterApi as default };
