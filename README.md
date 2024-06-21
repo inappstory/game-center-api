@@ -99,3 +99,21 @@ import GameCenterApi from "@inappstory/game-center-api";
 
 const closeGame = () => GameCenterApi.closeGameReader();
 ```
+
+## Get Application version
+
+```ts
+import GameCenterApi from "@inappstory/game-center-api";
+
+// 1.2.3
+const version: string | null = GameCenterApi.getApplicationVersion();
+```
+
+## Get Application build version
+
+```ts
+import GameCenterApi from "@inappstory/game-center-api";
+
+// 300
+const version: number | null = GameCenterApi.getApplicationBuildVersion();
+```
