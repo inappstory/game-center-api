@@ -14,7 +14,7 @@ import { gameLocalData } from "./localData";
 import { closeGameReader, createSdkApi, reloadGameReader } from "./sdkApi";
 import { gameLoadedSdkCallback, gameLoadFailedSdkCallback, gameShouldForegroundCallback, gameOnForeground } from "./sdkApi/initGame";
 import { openUrl } from "./sdkApi/openUrl";
-import { share } from "./sdkApi/share";
+import { shareText, shareUrl, shareFiles } from "./sdkApi/share";
 import { vibrate } from "./sdkApi/vibrate";
 import { ScreenOrientation, Placeholder, PlaceholderType, GameLaunchConfig } from "./gameLaunchConfig.h";
 import { fetchLocalFile } from "./sdkApi/fetchLocalFile";
@@ -28,7 +28,6 @@ import { FilePickerResultType, isFilePickerResultFileList, isFilePickerResultLoc
 
 export type { OpenFilePickerProps, SDKFileResponse, LocalFile, LocalFileList, FilePickerResultPayload, FilePickerResult } from "./sdkApi/filePicker.h";
 
-export type { ShareData as SDKShareData } from "./sdkApi/share";
 export type { PrimaryFontVariants as SDKPrimaryFontVariants, SecondaryFontVariants as SDKSecondaryFontVariants } from "./gameResources";
 export type { OpenUrlOptions as SDKOpenUrlOptions } from "./sdkApi/openUrl.h";
 export type { RequestInfo as APIRequestInfo, Response as APIResponse } from "./iasApi";
@@ -53,7 +52,9 @@ export {
     gameLocalData,
     sendIasApiRequest,
     openUrl,
-    share,
+    shareText,
+    shareUrl,
+    shareFiles,
     vibrate,
     getDynamicResourceAsset,
     getDynamicResourceFont,
@@ -99,7 +100,9 @@ const GameCenterApi = {
     gameLocalData,
     sendIasApiRequest,
     openUrl,
-    share,
+    shareText,
+    shareUrl,
+    shareFiles,
     vibrate,
     getDynamicResourceAsset,
     getDynamicResourceFont,
