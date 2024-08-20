@@ -3,7 +3,7 @@ import { asyncQueue } from "../asyncQueue";
 import { iosMh, isAndroid, isIos, isWeb } from "../env";
 import { webSource } from "./web/Source";
 
-export type ShareData = Partial<{
+type ShareData = Partial<{
     title: string | null;
     text: string | null;
     url: string | null;
@@ -20,7 +20,11 @@ declare global {
     }
 }
 
-export const share = async (config: ShareData): Promise<boolean> => {
+export const shareText = (text: string): Promise<boolean> => share({ text });
+export const shareUrl = (url: string): Promise<boolean> => share({ url });
+export const shareFiles = (files: Array<{ file: string; name: string; type: string }>): Promise<boolean> => share({ files });
+
+const share = (config: ShareData): Promise<boolean> => {
     return new Promise<boolean>((resolve, reject) => {
         const id = uuidV4();
 

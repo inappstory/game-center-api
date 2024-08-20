@@ -54,4 +54,38 @@ const getSemverSdkVersion = () => {
     return semverSdkVersion;
 };
 
-export { isIos, isWeb, isAndroid, iosMh, isDev, getSdkVersion, getSemverSdkVersion };
+/**
+ * For match app build version and app sem version from user agent
+ * InAppStorySDK/750 Dalvik/2.1.0 (Linux; U; Android 11; XQ-AT51 Build/58.1.A.5.530) Application/258 (com.inappstory.android 3.1.0)
+ */
+const appVersionFromUserAgentRegexp = /.*Application\/(\d+)\s\([a-zA-Z.]+\s([0-9.]+)\)/;
+
+/**
+ * Get host application build version
+ */
+const getApplicationBuildVersion = (): number | null => {
+    const userAgent = gameLaunchConfig.clientConfig.userAgent;
+    if (userAgent) {
+        const match = userAgent.match(appVersionFromUserAgentRegexp);
+        if (match && match[1]) {
+            return parseInt(match[1]);
+        }
+    }
+    return null;
+};
+
+/**
+ * Get host application sem version
+ */
+const getApplicationVersion = (): string | null => {
+    const userAgent = gameLaunchConfig.clientConfig.userAgent;
+    if (userAgent) {
+        const match = userAgent.match(appVersionFromUserAgentRegexp);
+        if (match && match[2]) {
+            return match[2];
+        }
+    }
+    return null;
+};
+
+export { isIos, isWeb, isAndroid, iosMh, isDev, getSdkVersion, getSemverSdkVersion, getApplicationBuildVersion, getApplicationVersion };
