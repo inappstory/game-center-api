@@ -33,6 +33,7 @@ export type GameLaunchConfig = {
         appPackageId: string;
         deviceId: string;
         fullScreen: boolean;
+        widescreen: boolean;
         lang: string;
         placeholders: Array<Placeholder>;
         safeAreaInsets: {
