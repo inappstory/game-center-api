@@ -35,6 +35,7 @@ export type GameLaunchConfig = {
         fullScreen: boolean;
         widescreen: boolean;
         lang: string;
+        dir?: "ltr" | "rtl";
         placeholders: Array<Placeholder>;
         safeAreaInsets: {
             bottom: number;

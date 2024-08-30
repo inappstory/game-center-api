@@ -153,6 +153,12 @@ export const createInitGame = (initLocalData: () => Promise<void>, mounted = () 
                 createNonce(gameLaunchConfig?.clientConfig?.nonce);
             }
 
+            if (gameLaunchConfig?.clientConfig?.dir) {
+                // for web-sdk - set dir attribute from clientConfig
+                // bcz web-sdk cannot access to document.documentElement inside game iFrame
+                window.document.documentElement.dir = gameLaunchConfig?.clientConfig?.dir;
+            }
+
             await initLocalData();
 
             mounted();
