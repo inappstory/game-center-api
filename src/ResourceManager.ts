@@ -133,13 +133,18 @@ export class ResourceManager {
         });
     }
     private async createObjectUrlByUri(uri: string, resouceKeys: string[]): Promise<null | string> {
-        if (!uri) throw `Resource uri for [${resouceKeys.join(", ")}] can't be empty string`;
+        if (!uri) {
+            throw `Resource uri for [${resouceKeys.join(", ")}] can't be empty string`;
+        }
 
         try {
             const response = await fetchLocalFile(uri);
 
-            if (response != null) return URL.createObjectURL(await response.blob());
-            else throw "";
+            if (response != null && response.ok) {
+                return URL.createObjectURL(await response.blob());
+            } else {
+                throw "";
+            }
         } catch (err) {
             console.warn(`Error to fetch ${uri} for related images [${resouceKeys.join(", ")}]`, err);
 
