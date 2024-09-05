@@ -38,7 +38,8 @@
     }
 
     setTimeout(function () {
-        if (!window.gameLoadingInfo.loaded) {
+        if (!window.gameLoadingInfo.loadStarted) {
+            // call only on serious js failure (when loadStarted false - parse error, Syntax error, EOL error)
             window.gameLoadFailed(window.gameLoadingInfo.error, false);
         }
     }, 30000);

@@ -21,6 +21,7 @@ declare global {
         _log: (text: string) => void;
         _sendErrorLog: (payload: Record<string, any>) => void;
         gameLoadingInfo: {
+            loadStarted: boolean;
             loaded: boolean;
             state: string;
             description: string;
@@ -32,6 +33,7 @@ declare global {
 }
 
 window.gameLoadingInfo = {
+    loadStarted: false,
     loaded: false,
     state: "before gameReader API creation",
     description: "",
@@ -134,6 +136,8 @@ window.gameReader = gameReader;
 export const createInitGame = (initLocalData: () => Promise<void>, mounted = () => {}) => {
     window.initGame = async function (config: GameLaunchConfig) {
         try {
+            // prevent call window.gameLoadFailed from fallback 30s timer (if js bundle parsed and ready)
+            window.gameLoadingInfo.loadStarted = true;
             window.gameLoadingInfo.state = "before call initGame";
             window.gameLoadingInfo.description = JSON.stringify(config);
             if (!isObject(config)) {
@@ -262,6 +266,7 @@ const gameLoadedSdkCallbackInternal = (config?: Partial<GameLoadedSdkConfig>) =>
 };
 
 window.gameLoadingInfo = {
+    loadStarted: false,
     loaded: false,
     state: "gameReader API created",
     description: "",
