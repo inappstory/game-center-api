@@ -11,6 +11,7 @@ import { isObject } from "../helpers/isObject";
 import { OpenStoryOptions } from "./openStory.h";
 import { gameLaunchHandlers } from "../gameLaunchConfig";
 import { asyncQueue } from "../asyncQueue";
+import { OpenGameInstanceOptions } from "./openGameInstance.h";
 
 let beforeUnmount: (() => void) | undefined;
 export const createSdkApi = ({
@@ -162,6 +163,7 @@ export type CloseGameReaderOptions = {
     [key: string]: any;
     openUrl?: string;
     openStory?: OpenStoryOptions;
+    openGameInstance?: OpenGameInstanceOptions;
 };
 
 /**
@@ -173,10 +175,14 @@ const sdkCloseGameReader = (data?: CloseGameReaderOptions) => {
     const devPayload = data ?? {};
     const openUrl = data?.openUrl != null ? data.openUrl : null;
     const openStory = data?.openStory != null ? data.openStory : null;
+    const openGameInstance = data?.openGameInstance != null ? data.openGameInstance : null;
+    if (openGameInstance != null && openGameInstance.id != null) {
+        openGameInstance.id = String(openGameInstance.id);
+    }
 
     if (isAndroid) {
         // {openUrl: null, openStory: {id: 1, slideIndex: 0}}
-        const config = JSON.stringify({ openUrl, openStory });
+        const config = JSON.stringify({ openUrl, openStory, openGameInstance });
 
         window.Android.gameComplete(JSON.stringify(data), JSON.stringify(devPayload), config);
     } else if (isIos) {
@@ -187,11 +193,12 @@ const sdkCloseGameReader = (data?: CloseGameReaderOptions) => {
                 result: devPayload,
                 openUrl,
                 openStory,
+                openGameInstance,
             })
         );
     } else if (isWeb) {
         if (webSource.sourceWindow && webSource.sourceWindowOrigin) {
-            webSource.sourceWindow.postMessage(["gameComplete", data, devPayload, null, openStory], webSource.sourceWindowOrigin);
+            webSource.sourceWindow.postMessage(["gameComplete", data, devPayload, null, openStory, openGameInstance], webSource.sourceWindowOrigin);
         }
     }
 };

@@ -20,6 +20,7 @@ import { ScreenOrientation, Placeholder, PlaceholderType, GameLaunchConfig } fro
 import { fetchLocalFile } from "./sdkApi/fetchLocalFile";
 
 import { openStory } from "./sdkApi/openStory";
+import { openGameInstance } from "./sdkApi/openGameInstance";
 import { eventGame } from "./sdkApi/events";
 
 import { ResourceManager } from "./ResourceManager";
@@ -36,6 +37,9 @@ export type { Placeholder, GameLaunchConfig };
 
 export type { ProjectFontFamily } from "./gameResources";
 export type { ResourceInterface } from "./ResourceManager";
+
+export type { OpenStoryOptions } from "./sdkApi/openStory.h";
+export type { OpenGameInstanceOptions } from "./sdkApi/openGameInstance.h";
 
 export {
     createSdkApi,
@@ -83,6 +87,7 @@ export {
     gameOnForeground,
     getApplicationVersion,
     getApplicationBuildVersion,
+    openGameInstance,
 };
 
 const GameCenterApi = {
@@ -131,6 +136,7 @@ const GameCenterApi = {
     gameOnForeground,
     getApplicationVersion,
     getApplicationBuildVersion,
+    openGameInstance,
 };
 
 export { GameCenterApi as default };
