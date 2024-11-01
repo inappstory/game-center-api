@@ -49,39 +49,36 @@ export class Resource implements ResourceInterface {
 export abstract class ResourceList implements Iterable<ResourceInterface> {
     protected orderOfFetch = 0;
 
-    constructor() {}
+    protected _hashMap: Record<string, Resource> | null = null;
 
-    get assets() {
-        // get keys from Asset
-        return Object.fromEntries(this.__assets.map(item => [item.key, item.getCacheUri()]));
-    }
+    protected get hashMap() {
+        if (this._hashMap === null) {
+            const map = this.rawMapGetter();
 
-    getAssetByKey(key: string, defaultValue: any) {
-        for (let i = 0; i < this.__assets.length; ++i) {
-            if (this.__assets[i].key === key) {
-                return this.__assets[i].getCacheUri();
+            this._hashMap = {};
+
+            let src: string;
+
+            for (let key in map) {
+                src = map[key];
+
+                this._hashMap[key] = new Resource(key, this.prepareSrc(src, key), src, this.orderOfFetch);
             }
         }
-        return defaultValue;
+
+        return this._hashMap as Readonly<typeof this._hashMap>;
     }
 
-    protected _assets: Array<Resource> | undefined = undefined;
+    constructor() {}
+
+    public getAssetByKey<T>(key: string, defaultValue: T) {
+        const resource = this.hashMap[key] ?? null;
+
+        return resource === null ? defaultValue : resource.getCacheUri();
+    }
 
     protected rawMapGetter(): Record<string, string> {
         return {};
-    }
-
-    protected get __assets() {
-        if (this._assets == null) {
-            const map = this.rawMapGetter();
-            this._assets = new Array<Resource>();
-            for (let key in map) {
-                let src = map[key] as unknown as string;
-
-                this._assets.push(new Resource(key, this.prepareSrc(src, key), src, this.orderOfFetch));
-            }
-        }
-        return this._assets;
     }
 
     protected prepareSrc(src: string, key: string) {
@@ -92,14 +89,14 @@ export abstract class ResourceList implements Iterable<ResourceInterface> {
 
     [Symbol.iterator]() {
         let pointer = 0;
-        const components = this.__assets;
+        const resources = Object.values(this.hashMap);
 
         return {
             next(): IteratorResult<ResourceInterface> {
-                if (pointer < components.length) {
+                if (pointer < resources.length) {
                     return {
                         done: false,
-                        value: components[pointer++],
+                        value: resources[pointer++],
                     };
                 } else {
                     return {
