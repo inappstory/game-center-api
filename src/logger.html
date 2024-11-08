@@ -24,6 +24,56 @@
     // canTryReload - for Script error. and unexpected EOL
 
     if (window.gameLoadFailed == null) {
+        var isAndroid = Boolean(window.Android);
+        var isIos = Boolean(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.gameLoaded);
+        var isWeb = !isAndroid && !isIos;
+        var sourceWindow, sourceWindowOrigin;
+
+        function initWebSource(event) {
+            // call only for initGame msg from sdk
+            // prevent override webSource.sourceWindowOrigin from game itself msg (mobile safari issue)
+            sourceWindow = event.source;
+            sourceWindowOrigin = event.origin;
+
+            // enable broadcast for corner case (VK WKWebView)
+            if (event.origin === "null" || event.origin == null || !Boolean(event.origin)) {
+                sourceWindowOrigin = "*";
+            }
+
+            // save to gameLoadingInfo
+            if (window.gameLoadingInfo == null) {
+                window.gameLoadingInfo = {
+                    sourceWindow: sourceWindow,
+                    sourceWindowOrigin: sourceWindowOrigin,
+                };
+            }
+        }
+
+        if (isWeb) {
+            var messageListener = function (event) {
+                var data = event.data;
+
+                if (Array.isArray(data)) {
+                    switch (data[0]) {
+                        case "initGame":
+                            initWebSource(event);
+                            window.removeEventListener("message", messageListener);
+                            break;
+                        case "cb":
+                            if (data[1] && data[1].cb != null) {
+                                if (data[1].cb === "initGame") {
+                                    initWebSource(event);
+                                    window.removeEventListener("message", messageListener);
+                                }
+                            }
+                            break;
+                    }
+                }
+            };
+
+            window.addEventListener("message", messageListener, false);
+        }
+
         window.gameLoadFailed = function (reason, canTryReload) {
             if (window.Android) {
                 if (window.Android.gameLoadFailed) {
@@ -31,20 +81,47 @@
                 }
             } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.gameLoaded) {
                 if (window.webkit.messageHandlers.gameLoadFailed) {
-                    window.webkit.messageHandlers.gameLoadFailed.postMessage(JSON.stringify({ reason: reason, canTryReload: canTryReload }));
+                    window.webkit.messageHandlers.gameLoadFailed.postMessage(
+                        JSON.stringify({
+                            reason: reason,
+                            canTryReload: canTryReload,
+                        })
+                    );
+                }
+            } else if (isWeb) {
+                if (sourceWindow != null && sourceWindowOrigin != null) {
+                    sourceWindow.postMessage(["gameLoadFailed", reason, canTryReload], sourceWindowOrigin);
                 }
             }
         };
     }
 
     setTimeout(function () {
-        if (!window.gameLoadingInfo.loadStarted) {
+        let loadStarted = false;
+        let error = "";
+        if (window.gameLoadingInfo != null) {
+            if (window.gameLoadingInfo.loadStarted != null) {
+                loadStarted = window.gameLoadingInfo.loadStarted;
+            }
+            if (window.gameLoadingInfo.error != null) {
+                error = window.gameLoadingInfo.error;
+            }
+        }
+        if (!loadStarted) {
             // call only on serious js failure (when loadStarted false - parse error, Syntax error, EOL error)
-            window.gameLoadFailed(window.gameLoadingInfo.error, false);
+            if (window.gameLoadFailed != null) {
+                window.gameLoadFailed(error, false);
+            }
         }
     }, 30000);
 
     window.onerror = function (msg, url, lineNo, columnNo, error) {
+        // console.log({msg, url, lineNo, columnNo, error});
+
+        if (window.gameLoadingInfo == null) {
+            window.gameLoadingInfo = {};
+        }
+
         var payload = {
             type: "onerror event",
             message: msg,
@@ -58,8 +135,7 @@
             payload.errorMessage = error.message;
             payload.errorStack = error.stack;
         }
-        // if (msg === "Script error.") {
-        if (window.gameLoadingInfo) {
+        if (window.gameLoadingInfo != null) {
             payload.loadingState = window.gameLoadingInfo.state;
             payload.loadingDescription = window.gameLoadingInfo.description;
         }
@@ -70,13 +146,21 @@
         payload.androidExists = window.Android != null;
         payload.androidGameLoadedExists = window.Android != null && window.Android.gameLoaded != null;
 
-        // }
-        window._sendErrorLog(payload);
-
         window.gameLoadingInfo.error = msg;
+
         if (msg === "Script error.") {
-            // window.gameLoadFailed(msg, true);
+            // skip sendErrorLog for Script error. (this is error from other scripts, not from oyr game.
+            // When a syntax(?) error occurs in a script, loaded from a different origin,
+            // the details of the syntax error are not reported to prevent leaking information (see bug 363897).
+            // Instead, the error reported is simply "Script error." This behavior can be overriden in some browsers
+            // using the crossorigin attribute on and having the server send the appropriate CORS HTTP response headers.
+            // A workaround is to isolate "Script error." and handle it knowing that the error detail is only viewable
+            // in the browser console and not accessible via JavaScript.
+            // https://ravikiranj.net/posts/2014/code/how-fix-cryptic-script-error-javascript/
+            // https://stackoverflow.com/questions/45844565/script-error-errors-in-window-onerror-in-safari-only
+            return false;
         }
+        window._sendErrorLog(payload);
 
         return false;
     };

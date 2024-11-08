@@ -21,6 +21,8 @@ declare global {
         _log: (text: string) => void;
         _sendErrorLog: (payload: Record<string, any>) => void;
         gameLoadingInfo: {
+            sourceWindow?: Window | null;
+            sourceWindowOrigin?: string | null;
             loadStarted: boolean;
             loaded: boolean;
             state: string;
@@ -32,13 +34,18 @@ declare global {
     }
 }
 
-window.gameLoadingInfo = {
+const _gameLoadingInfo = {
     loadStarted: false,
     loaded: false,
     state: "before gameReader API creation",
     description: "",
     error: "",
 };
+if (window.gameLoadingInfo != null) {
+    window.gameLoadingInfo = { ...window.gameLoadingInfo, ..._gameLoadingInfo };
+} else {
+    window.gameLoadingInfo = _gameLoadingInfo;
+}
 
 type GameReaderInit = {
     _e: Array<() => void>;
@@ -265,18 +272,29 @@ const gameLoadedSdkCallbackInternal = (config?: Partial<GameLoadedSdkConfig>) =>
     }
 };
 
-window.gameLoadingInfo = {
+const _gameLoadingInfoCreated = {
     loadStarted: false,
     loaded: false,
     state: "gameReader API created",
     description: "",
     error: "",
 };
+if (window.gameLoadingInfo != null) {
+    window.gameLoadingInfo = { ...window.gameLoadingInfo, ..._gameLoadingInfoCreated };
+} else {
+    window.gameLoadingInfo = _gameLoadingInfoCreated;
+}
 
 export const gameLoadFailedSdkCallback = (reason: string, canTryReload: boolean) => {
-    if (!window.gameLoadingInfo.loaded) {
-        window.gameLoadingInfo.state = "before call gameLoadFailedSdkCallback";
-        window.gameLoadingInfo.description = reason;
+    let loaded = false;
+    if (window.gameLoadingInfo != null && window.gameLoadingInfo.loaded != null) {
+        loaded = window.gameLoadingInfo.loaded;
+    }
+    if (!loaded) {
+        if (window.gameLoadingInfo != null) {
+            window.gameLoadingInfo.state = "before call gameLoadFailedSdkCallback";
+            window.gameLoadingInfo.description = reason;
+        }
         if (isAndroid) {
             if (window.Android.gameLoadFailed) {
                 window.Android.gameLoadFailed(reason, canTryReload);
@@ -286,7 +304,7 @@ export const gameLoadFailedSdkCallback = (reason: string, canTryReload: boolean)
                 iosMh.gameLoadFailed.postMessage(JSON.stringify({ reason, canTryReload }));
             }
         } else if (isWeb) {
-            if (webSource.sourceWindow && webSource.sourceWindowOrigin) {
+            if (webSource.sourceWindow != null && webSource.sourceWindowOrigin != null) {
                 webSource.sourceWindow.postMessage(["gameLoadFailed", reason, canTryReload], webSource.sourceWindowOrigin);
             }
         }
@@ -376,4 +394,8 @@ let gameOnForegroundReject: (reason?: any) => void = () => {};
 export const gameOnForeground = new Promise<void>((resolve, reject) => {
     gameOnForegroundResolve = resolve;
     gameOnForegroundReject = reject;
+});
+
+gameOnForeground.catch(e => {
+    console.log("on gameOnForeground reject", e);
 });

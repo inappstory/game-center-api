@@ -2,6 +2,9 @@ class Source {
     constructor() {}
 
     get sourceWindowOrigin(): string | null {
+        if (window.gameLoadingInfo != null && window.gameLoadingInfo.sourceWindowOrigin != null) {
+            return window.gameLoadingInfo.sourceWindowOrigin;
+        }
         return this._sourceWindowOrigin;
     }
 
@@ -10,6 +13,9 @@ class Source {
     }
 
     get sourceWindow(): Window | null {
+        if (window.gameLoadingInfo != null && window.gameLoadingInfo.sourceWindow != null) {
+            return window.gameLoadingInfo.sourceWindow;
+        }
         return this._sourceWindow;
     }
 
