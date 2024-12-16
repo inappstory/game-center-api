@@ -380,10 +380,15 @@ const isSdkSupportGameShouldForegroundCallback = () => {
         let support = false;
         const semverVersion = getSemverSdkVersion();
         if (semverVersion != null && semverVersion) {
+            // for js-sdk
             // gte(v1, v2): v1 >= v2
             if (semver.gte(semverVersion, "2.12.0-rc.11")) {
                 support = true;
             }
+        }
+        // for react-sdk
+        if (gameLaunchConfig.clientConfig?.sdkFeatures?.gameShouldForegroundCallback === true) {
+            support = true;
         }
         return support;
     }

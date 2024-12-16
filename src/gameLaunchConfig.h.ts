@@ -45,6 +45,9 @@ export type GameLaunchConfig = {
         };
         screenOrientation: ScreenOrientation;
         sdkVersion: string;
+        sdkFeatures?: {
+            gameShouldForegroundCallback?: boolean;
+        };
         sessionId: string;
         userAgent: string;
         userId: string;
