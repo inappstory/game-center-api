@@ -3,7 +3,7 @@ import { webSource } from "./web/Source";
 import { OpenUrlOptions } from "./openUrl.h";
 import { closeGameReader as sdkCloseGameReader } from "./index";
 
-export const openUrl = ({ url, closeGameReader }: OpenUrlOptions) => {
+export const openUrl = ({ url, closeGameReader, closeGameReaderPayload }: OpenUrlOptions) => {
     if (isAndroid) {
         if (window.Android.openUrl !== undefined) {
             window.Android.openUrl(JSON.stringify({ url }));
@@ -19,6 +19,6 @@ export const openUrl = ({ url, closeGameReader }: OpenUrlOptions) => {
     }
 
     if (closeGameReader) {
-        sdkCloseGameReader();
+        sdkCloseGameReader(closeGameReaderPayload);
     }
 };
