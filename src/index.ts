@@ -27,6 +27,8 @@ import { ResourceManager } from "./ResourceManager";
 import { hasFilePickerApi, openFilePicker } from "./sdkApi/filePicker";
 import { FilePickerResultType, isFilePickerResultFileList, isFilePickerResultLocalFileList, isLocalFile } from "./sdkApi/filePicker.h";
 
+import { logError } from "./errorHandler";
+
 export type { OpenFilePickerProps, SDKFileResponse, LocalFile, LocalFileList, FilePickerResultPayload, FilePickerResult } from "./sdkApi/filePicker.h";
 
 export type { PrimaryFontVariants as SDKPrimaryFontVariants, SecondaryFontVariants as SDKSecondaryFontVariants } from "./gameResources";
@@ -88,6 +90,7 @@ export {
     getApplicationVersion,
     getApplicationBuildVersion,
     openGameInstance,
+    logError,
 };
 
 const GameCenterApi = {
@@ -137,6 +140,7 @@ const GameCenterApi = {
     getApplicationVersion,
     getApplicationBuildVersion,
     openGameInstance,
+    logError,
 };
 
 export { GameCenterApi as default };

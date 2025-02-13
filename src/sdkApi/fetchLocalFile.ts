@@ -1,4 +1,5 @@
 import { getSemverSdkVersion, isAndroid } from "../env";
+import { logError } from "../errorHandler";
 
 const semver = require("semver");
 
@@ -69,7 +70,7 @@ export function fetchLocalFile(url: string, remoteUrl?: string): Promise<Respons
                         try {
                             resolve(new Response(xhr.response, { status: xhr.status >= 200 && xhr.status <= 599 ? xhr.status : 200 }));
                         } catch (e) {
-                            console.error(e);
+                            logError(e);
                             reject(e);
                         }
                     };

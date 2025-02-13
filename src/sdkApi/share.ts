@@ -2,6 +2,7 @@ import { v4 as uuidV4 } from "uuid";
 import { asyncQueue } from "../asyncQueue";
 import { iosMh, isAndroid, isIos, isWeb } from "../env";
 import { webSource } from "./web/Source";
+import { logError } from "../errorHandler";
 
 type ShareData = Partial<{
     title: string | null;
@@ -62,6 +63,7 @@ window.share_complete = function (requestId: string, isSuccess: boolean) {
             asyncQueue.delete(requestId);
         }
     } catch (e) {
-        console.error(e, { inputData: { requestId, isSuccess } });
+        (e as Error).cause = { inputData: { requestId, isSuccess } };
+        logError(e);
     }
 };

@@ -160,7 +160,9 @@
             // https://stackoverflow.com/questions/45844565/script-error-errors-in-window-onerror-in-safari-only
             return false;
         }
-        window._sendErrorLog(payload);
+        // window._sendErrorLog(payload);
+        // log via sdk logger and internal _sendErrorLog
+        console.error(payload);
 
         return false;
     };

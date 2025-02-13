@@ -1,5 +1,6 @@
 import { SemVer } from "semver";
 import { gameLaunchConfig } from "./gameLaunchConfig";
+import { logError } from "./errorHandler";
 
 const semver = require("semver");
 
@@ -36,7 +37,7 @@ const parseSdkVersion = () => {
             semverSdkVersion = semverResult;
         }
     } catch (e) {
-        console.error(e);
+        logError(e);
     }
 };
 

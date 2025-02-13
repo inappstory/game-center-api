@@ -4,6 +4,7 @@ import { asyncQueue } from "./asyncQueue";
 import { getGameInstanceId } from "./gameLaunchConfig";
 import { webSource } from "./sdkApi/web/Source";
 import { sendIasApiRequest } from "./iasApi";
+import { logError } from "./errorHandler";
 
 export class LocalDataMap<K, V> extends Map<K, V> {
     set(key: K, value: V) {
@@ -71,7 +72,7 @@ const getClientLocalData = async () => {
 
     if (gameInstanceId == null) {
         // Prevent call with incorrect storyId
-        console.error("Call getGameInstanceLocalData with empty `gameInstanceId`");
+        logError(new Error("Call getGameInstanceLocalData with empty `gameInstanceId`"));
         return {};
     }
 
@@ -139,7 +140,8 @@ window.gameInstanceGetLocalDataCb = function (id: string, plainData: string) {
     try {
         localData = JSON.parse(plainData);
     } catch (e) {
-        console.error(e, { inputData: plainData });
+        (e as Error).cause = { inputData: plainData };
+        logError(e);
     } finally {
         if (asyncQueue.has(id)) {
             const cb = asyncQueue.get(id);
@@ -160,7 +162,7 @@ const setGameLocalData = async (sendToServer: boolean = true) => {
 
     if (gameInstanceId == null) {
         // Prevent call with incorrect storyId
-        console.error("Call getGameInstanceLocalData with empty `gameInstanceId`");
+        logError(new Error("Call getGameInstanceLocalData with empty `gameInstanceId`"));
         return;
     }
 

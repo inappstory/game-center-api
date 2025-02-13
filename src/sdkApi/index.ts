@@ -12,6 +12,7 @@ import { OpenStoryOptions } from "./openStory.h";
 import { gameLaunchHandlers } from "../gameLaunchConfig";
 import { asyncQueue } from "../asyncQueue";
 import { OpenGameInstanceOptions } from "./openGameInstance.h";
+import { logError } from "../errorHandler";
 
 let beforeUnmount: (() => void) | undefined;
 export const createSdkApi = ({
@@ -73,7 +74,8 @@ export const createSdkApi = ({
                 asyncQueue.delete(id);
             }
         } catch (e) {
-            console.error(e, { inputData: payload });
+            (e as Error).cause = { inputData: payload };
+            logError(e);
         }
     };
 
@@ -145,7 +147,7 @@ export const createSdkApi = ({
                                                 window[params["cb"]].apply(this, args);
                                             }
                                         } catch (e) {
-                                            console.error(e);
+                                            logError(e);
                                         }
                                     }
                                 }

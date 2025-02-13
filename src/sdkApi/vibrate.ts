@@ -1,4 +1,5 @@
 import { isIos } from "../env";
+import { logError } from "../errorHandler";
 
 /**
  * https://developer.mozilla.org/en-US/docs/Web/API/Vibration_API
@@ -57,13 +58,13 @@ export const vibrate = (
             try {
                 window.Android.vibrate(patternResult);
             } catch (e) {
-                console.error(e);
+                logError(e);
             }
         } else {
             try {
                 navigator.vibrate(patternResult);
             } catch (e) {
-                console.error(e);
+                logError(e);
             }
         }
     }

@@ -4,6 +4,7 @@ import { gameLaunchConfig, setGameLaunchConfig } from "../gameLaunchConfig";
 import { getSemverSdkVersion, iosMh, isAndroid, isIos, isWeb } from "../env";
 import { webSource } from "./web/Source";
 import { createNonce } from "../createNonce";
+import { logError } from "../errorHandler";
 
 const semver = require("semver");
 
@@ -66,13 +67,8 @@ const gameReader: GameReaderInit = (function () {
                             window.gameLoadingInfo.state = "after call gameReaderInit queue";
                             window.gameLoadingInfo.description = "index: " + i;
                         } catch (e) {
-                            window._sendErrorLog &&
-                                window._sendErrorLog({
-                                    src: "gameReaderInit queue",
-                                    message: (e as Error).message,
-                                    stack: (e as Error).stack,
-                                });
-                            console.error(e);
+                            (e as Error).cause = { src: "gameReaderInit queue" };
+                            logError(e);
                         }
                     };
                 })(self._e[i], i)
@@ -98,13 +94,8 @@ const gameReader: GameReaderInit = (function () {
                                     window.gameLoadingInfo.state = "after call gameReaderInit sessionStorage queue";
                                     window.gameLoadingInfo.description = "index: " + i;
                                 } catch (e) {
-                                    window._sendErrorLog &&
-                                        window._sendErrorLog({
-                                            src: "gameReaderInit sessionStorage queue",
-                                            message: (e as Error).message,
-                                            stack: (e as Error).stack,
-                                        });
-                                    console.error(e);
+                                    (e as Error).cause = { src: "gameReaderInit sessionStorage queue" };
+                                    logError(e);
                                 }
                             };
                         })(_initQueue[i], i)
@@ -113,7 +104,7 @@ const gameReader: GameReaderInit = (function () {
             }
             window.sessionStorage.removeItem("_initQueue");
         } catch (e) {
-            console.error(e);
+            logError(e);
         }
     }
     self.ready = function (cb) {
@@ -125,13 +116,8 @@ const gameReader: GameReaderInit = (function () {
                 window.gameLoadingInfo.state = "after call gameReaderInit ready";
                 window.gameLoadingInfo.description = "";
             } catch (e) {
-                window._sendErrorLog &&
-                    window._sendErrorLog({
-                        src: "gameReaderInit ready",
-                        message: (e as Error).message,
-                        stack: (e as Error).stack,
-                    });
-                console.error(e);
+                (e as Error).cause = { src: "gameReaderInit ready" };
+                logError(e);
             }
         });
     };
@@ -148,7 +134,7 @@ export const createInitGame = (initLocalData: () => Promise<void>, mounted = () 
             window.gameLoadingInfo.state = "before call initGame";
             window.gameLoadingInfo.description = JSON.stringify(config);
             if (!isObject(config)) {
-                console.error("Invalid gameConfig");
+                logError(new Error("Invalid gameConfig"));
                 return;
             }
 
@@ -177,13 +163,8 @@ export const createInitGame = (initLocalData: () => Promise<void>, mounted = () 
             window.gameLoadingInfo.state = "after call initGame";
             window.gameLoadingInfo.description = JSON.stringify(config);
         } catch (e) {
-            window._sendErrorLog &&
-                window._sendErrorLog({
-                    src: "initGame",
-                    message: (e as Error).message,
-                    stack: (e as Error).stack,
-                });
-            console.error(e);
+            (e as Error).cause = { src: "initGame" };
+            logError(e);
         }
     };
 };
@@ -262,13 +243,8 @@ const gameLoadedSdkCallbackInternal = (config?: Partial<GameLoadedSdkConfig>) =>
             gameOnForegroundResolve();
         }
     } catch (e) {
-        window._sendErrorLog &&
-            window._sendErrorLog({
-                src: "gameLoadedSdkCallback",
-                message: (e as Error).message,
-                stack: (e as Error).stack,
-            });
-        console.error(e);
+        (e as Error).cause = { src: "gameLoadedSdkCallback" };
+        logError(e);
     }
 };
 
