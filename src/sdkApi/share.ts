@@ -63,7 +63,6 @@ window.share_complete = function (requestId: string, isSuccess: boolean) {
             asyncQueue.delete(requestId);
         }
     } catch (e) {
-        (e as Error).cause = { inputData: { requestId, isSuccess } };
-        logError(e);
+        logError(e, { inputData: { requestId, isSuccess } });
     }
 };

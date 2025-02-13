@@ -1,5 +1,6 @@
 import { gameLaunchConfig } from "./gameLaunchConfig";
 import { v4 as uuidV4 } from "uuid";
+import { logError } from "./errorHandler";
 
 const prepareHeaders = (headers: RequestInfo["headers"]) => ({
     ...{
@@ -47,8 +48,11 @@ export async function sendIasApiRequest<T>(requestInfo: RequestInfo): Promise<Re
         error: null,
         isOk: false,
     };
+    let url = "";
+    let requestInit: RequestInit = null!;
     try {
-        const response = await fetch(prepareUrl(requestInfo.path), {
+        url = prepareUrl(requestInfo.path);
+        requestInit = {
             method: requestInfo.method, // *GET, POST, PUT, DELETE, etc.
             mode: "cors", // no-cors, *cors, same-origin
             cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
@@ -57,7 +61,12 @@ export async function sendIasApiRequest<T>(requestInfo: RequestInfo): Promise<Re
             redirect: "follow", // manual, *follow, error
             referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
             body: JSON.stringify(requestInfo.data), // body data type must match "Content-Type" header
-        });
+        };
+    } catch (e) {
+        logError(e, { requestInfo });
+    }
+    try {
+        const response = await fetch(url, requestInit);
 
         result.status = response.status;
         result.payload = (await response.json()) as T; // parses JSON response into native JavaScript objects
@@ -66,6 +75,7 @@ export async function sendIasApiRequest<T>(requestInfo: RequestInfo): Promise<Re
         }
     } catch (e) {
         result.error = e;
+        logError(e, { url, requestInit });
     }
     return result;
 }

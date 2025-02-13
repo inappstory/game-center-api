@@ -74,8 +74,7 @@ export const createSdkApi = ({
                 asyncQueue.delete(id);
             }
         } catch (e) {
-            (e as Error).cause = { inputData: payload };
-            logError(e);
+            logError(e, { inputData: payload });
         }
     };
 

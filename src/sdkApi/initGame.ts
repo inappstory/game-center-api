@@ -67,8 +67,7 @@ const gameReader: GameReaderInit = (function () {
                             window.gameLoadingInfo.state = "after call gameReaderInit queue";
                             window.gameLoadingInfo.description = "index: " + i;
                         } catch (e) {
-                            (e as Error).cause = { src: "gameReaderInit queue" };
-                            logError(e);
+                            logError(e, { src: "gameReaderInit queue" });
                         }
                     };
                 })(self._e[i], i)
@@ -94,8 +93,7 @@ const gameReader: GameReaderInit = (function () {
                                     window.gameLoadingInfo.state = "after call gameReaderInit sessionStorage queue";
                                     window.gameLoadingInfo.description = "index: " + i;
                                 } catch (e) {
-                                    (e as Error).cause = { src: "gameReaderInit sessionStorage queue" };
-                                    logError(e);
+                                    logError(e, { src: "gameReaderInit sessionStorage queue" });
                                 }
                             };
                         })(_initQueue[i], i)
@@ -116,8 +114,7 @@ const gameReader: GameReaderInit = (function () {
                 window.gameLoadingInfo.state = "after call gameReaderInit ready";
                 window.gameLoadingInfo.description = "";
             } catch (e) {
-                (e as Error).cause = { src: "gameReaderInit ready" };
-                logError(e);
+                logError(e, { src: "gameReaderInit ready" });
             }
         });
     };
@@ -156,14 +153,18 @@ export const createInitGame = (initLocalData: () => Promise<void>, mounted = () 
                 window.document.documentElement.dir = gameLaunchConfig?.clientConfig?.dir;
             }
 
-            await initLocalData();
+            try {
+                await initLocalData();
+            } catch (e) {
+                logError(e);
+                throw e;
+            }
 
             mounted();
 
             window.gameLoadingInfo.state = "after call initGame";
             window.gameLoadingInfo.description = JSON.stringify(config);
         } catch (e) {
-            (e as Error).cause = { src: "initGame" };
             logError(e);
         }
     };
@@ -243,8 +244,7 @@ const gameLoadedSdkCallbackInternal = (config?: Partial<GameLoadedSdkConfig>) =>
             gameOnForegroundResolve();
         }
     } catch (e) {
-        (e as Error).cause = { src: "gameLoadedSdkCallback" };
-        logError(e);
+        logError(e, { src: "gameLoadedSdkCallback" });
     }
 };
 

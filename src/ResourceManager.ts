@@ -1,5 +1,6 @@
 import { fetchLocalFile } from "./sdkApi/fetchLocalFile";
 import { type ResourceList } from "./gameResources";
+import { logError } from "./errorHandler";
 
 export interface ResourceInterface {
     // set cache uri to object internal variable
@@ -76,12 +77,12 @@ export class ResourceManager {
 
             const promise = ((resourceForFetch, relatedResources) => {
                 return new Promise<void>(async (resolve, reject) => {
-                    const resouceKeys = relatedResources.map(resource => resource.key);
+                    const resourceKeys = relatedResources.map(resource => resource.key);
                     const uri = resourceForFetch.getUri();
                     const originUri = resourceForFetch.getOriginUri();
 
                     try {
-                        const objectUrl = await this.cacheResource({ uri, originUri, resouceKeys });
+                        const objectUrl = await this.cacheResource({ uri, originUri, resourceKeys: resourceKeys });
 
                         if (objectUrl === originUri) {
                             resolve();
@@ -95,7 +96,8 @@ export class ResourceManager {
 
                         resolve();
                     } catch (e) {
-                        reject(`Can't load resource for [${resouceKeys.join(", ")}]`);
+                        logError(e, { resourceKeys });
+                        reject(`Can't load resource for [${resourceKeys.join(", ")}]`);
                     }
                 });
             })(resourceForFetch, relatedResources);
@@ -103,7 +105,11 @@ export class ResourceManager {
             promises.push(promise);
         }
 
-        await Promise.all(promises);
+        try {
+            await Promise.all(promises);
+        } catch (e) {
+            logError(e);
+        }
 
         for (const resList of this.resLists) resList["onCacheDone"]();
     }
@@ -111,17 +117,30 @@ export class ResourceManager {
     public async cacheResource({
         uri,
         originUri = uri,
-        resouceKeys = ["outerResource"],
+        resourceKeys = ["outerResource"],
     }: {
         uri: string;
         originUri?: string;
-        resouceKeys?: string[];
+        resourceKeys?: string[];
     }): Promise<string> {
-        let objectUrl = await this.createObjectUrlByUri(uri, resouceKeys);
+        let objectUrl: string | null = null;
+        try {
+            objectUrl = await this.createObjectUrlByUri(uri, resourceKeys);
+        } catch (e) {
+            logError(e, { uri, resourceKeys });
+        }
 
-        if (objectUrl === null && uri !== originUri) objectUrl = await this.createObjectUrlByUri(originUri, resouceKeys);
+        if (objectUrl === null && uri !== originUri) {
+            try {
+                objectUrl = await this.createObjectUrlByUri(originUri, resourceKeys);
+            } catch (e) {
+                logError(e, { originUri, resourceKeys });
+            }
+        }
 
-        if (objectUrl !== null) return objectUrl;
+        if (objectUrl !== null) {
+            return objectUrl;
+        }
 
         return new Promise((resolve, reject) => {
             const image = new Image();
@@ -132,21 +151,28 @@ export class ResourceManager {
             image.src = originUri;
         });
     }
-    private async createObjectUrlByUri(uri: string, resouceKeys: string[]): Promise<null | string> {
+    private async createObjectUrlByUri(uri: string, resourceKeys: string[]): Promise<null | string> {
         if (!uri) {
-            throw `Resource uri for [${resouceKeys.join(", ")}] can't be empty string`;
+            throw `Resource uri for [${resourceKeys.join(", ")}] can't be empty string`;
         }
 
         try {
             const response = await fetchLocalFile(uri);
 
             if (response != null && response.ok) {
-                return URL.createObjectURL(await response.blob());
+                let blob: Blob = null!;
+                try {
+                    blob = await response.blob();
+                } catch (e) {
+                    logError(e);
+                    throw e;
+                }
+                return URL.createObjectURL(blob);
             } else {
                 throw "";
             }
         } catch (err) {
-            console.warn(`Error to fetch ${uri} for related images [${resouceKeys.join(", ")}]`, err);
+            console.warn(`Error to fetch ${uri} for related images [${resourceKeys.join(", ")}]`, err);
 
             return null;
         }

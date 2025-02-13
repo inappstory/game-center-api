@@ -234,9 +234,21 @@
         }
 
         window._sendErrorLog(payload);
-        console.errorOrigin(messages);
-        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.errorHandler && messages.length) {
-            window.webkit.messageHandlers.errorHandler.postMessage(messages[0]);
+        if (messages.length && messages[0] != null) {
+            let errorAsString = "";
+            try {
+                errorAsString = JSON.stringify(messages[0]);
+            } catch (e) {
+                // nothing here
+            }
+            // for Android
+            console.errorOrigin(errorAsString);
+            // for iOS
+            if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.errorHandler) {
+                window.webkit.messageHandlers.errorHandler.postMessage(errorAsString);
+            }
+        } else {
+            console.errorOrigin(messages);
         }
     };
 </script>

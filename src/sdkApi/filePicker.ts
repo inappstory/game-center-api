@@ -2,6 +2,7 @@ import { FilePickerResult, FilePickerResultType, LocalFile, LocalFileList, OpenF
 import { v4 as uuidV4 } from "uuid";
 import { asyncQueue } from "../asyncQueue";
 import { iosMh, isAndroid, isIos } from "../env";
+import { logError } from "../errorHandler";
 
 const defaultLang = "en";
 // TODO plural and templates for messages
@@ -121,7 +122,13 @@ export const openFilePicker = async <T extends FilePickerResultType = FilePicker
 
                 response.forEach(src => {
                     blobs.push(async () => {
-                        const blob = await (await fetch(src)).blob();
+                        let blob: Blob = null!;
+                        try {
+                            blob = await (await fetch(src)).blob();
+                        } catch (e) {
+                            logError(e);
+                            throw e;
+                        }
                         const fileName = src.split("\\").pop()?.split("/").pop() || "image";
                         // dataTransfer.items.add(new File([blob], fileName, {
                         //     type: blob.type,
@@ -178,7 +185,13 @@ export const openFilePicker = async <T extends FilePickerResultType = FilePicker
                         duration: sdkFileResponse.duration,
                         getBlob: async () => {
                             const fetchPath = sdkFileResponse.fetchPath;
-                            const blob = await (await fetch(fetchPath)).blob();
+                            let blob: Blob = null!;
+                            try {
+                                blob = await (await fetch(fetchPath)).blob();
+                            } catch (e) {
+                                logError(e);
+                                throw e;
+                            }
                             return new File([blob], fileName, {
                                 type: blob.type,
                                 lastModified: new Date().getTime(),

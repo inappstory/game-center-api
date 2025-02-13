@@ -48,7 +48,11 @@ export const initLocalData: () => Promise<void> = async () => {
         console.warn("Duplicate call of initLocalData. Skipping");
     }
 
-    (gameLocalData as any).init(Object.entries(await getClientLocalData()));
+    try {
+        (gameLocalData as any).init(Object.entries(await getClientLocalData()));
+    } catch (e) {
+        logError(e);
+    }
     localDataCreated = true;
 };
 
@@ -140,8 +144,7 @@ window.gameInstanceGetLocalDataCb = function (id: string, plainData: string) {
     try {
         localData = JSON.parse(plainData);
     } catch (e) {
-        (e as Error).cause = { inputData: plainData };
-        logError(e);
+        logError(e, { inputData: plainData });
     } finally {
         if (asyncQueue.has(id)) {
             const cb = asyncQueue.get(id);
