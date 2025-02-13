@@ -235,7 +235,7 @@
 
         window._sendErrorLog(payload);
         if (messages.length && messages[0] != null) {
-            let errorAsString = "";
+            var errorAsString = "";
             try {
                 errorAsString = JSON.stringify(messages[0]);
             } catch (e) {
