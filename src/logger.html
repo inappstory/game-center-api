@@ -115,6 +115,25 @@
         }
     }, 30000);
 
+    var eventFromError = function (error) {
+        if (error instanceof Error) {
+            var data = {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+            };
+            if (error.cause != null) {
+                if (error.cause instanceof Error) {
+                    data.cause = eventFromError(error.cause);
+                } else {
+                    data.cause = error.cause;
+                }
+            }
+            return data;
+        }
+        return null;
+    };
+
     window.onerror = function (msg, url, lineNo, columnNo, error) {
         // console.log({msg, url, lineNo, columnNo, error});
 
@@ -128,12 +147,9 @@
             lineno: lineNo,
             colno: columnNo,
             source: url,
-            errorMessage: error ? error.message : "",
-            errorStack: error ? error.stack : "",
         };
         if (error) {
-            payload.errorMessage = error.message;
-            payload.errorStack = error.stack;
+            payload.error = eventFromError(error);
         }
         if (window.gameLoadingInfo != null) {
             payload.loadingState = window.gameLoadingInfo.state;
@@ -170,9 +186,17 @@
     window.onunhandledrejection = function (event) {
         var payload = {
             type: "onunhandledrejection",
-            reason: event.reason,
+            reason: event.reason instanceof Error ? eventFromError(event.reason) : event.reason,
+            stack: "",
         };
-        window._sendErrorLog(payload);
+
+        if (event.promise != null && event.promise.creationPoint != null) {
+            payload.stack = event.promise.creationPoint;
+        }
+
+        // window._sendErrorLog(payload);
+        // log via sdk logger and internal _sendErrorLog
+        console.error(payload);
     };
 
     window.console.log = function () {
@@ -231,6 +255,11 @@
                 }
             }
             payload[field] = value;
+
+            if (window.gameLoadingInfo != null) {
+                payload.loadingState = window.gameLoadingInfo.state;
+                payload.loadingDescription = window.gameLoadingInfo.description;
+            }
         }
 
         window._sendErrorLog(payload);

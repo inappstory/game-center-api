@@ -145,6 +145,8 @@ const GameCenterApi = {
 
 export { GameCenterApi as default };
 
+export { TraceablePromise } from "./TraceablePromise";
+
 // export { Placeholder as default};
 
 // types
