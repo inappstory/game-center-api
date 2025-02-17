@@ -259,6 +259,8 @@
             if (window.gameLoadingInfo != null) {
                 payload.loadingState = window.gameLoadingInfo.state;
                 payload.loadingDescription = window.gameLoadingInfo.description;
+                payload.loadingLoadStarted = window.gameLoadingInfo.loadStarted;
+                payload.loadingLoaded = window.gameLoadingInfo.loaded;
             }
         }
 
