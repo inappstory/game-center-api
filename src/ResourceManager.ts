@@ -1,6 +1,6 @@
 import { fetchLocalFile } from "./sdkApi/fetchLocalFile";
 import { type ResourceList } from "./gameResources";
-import { logError } from "./errorHandler";
+import { logError } from "./eventLogger";
 
 export interface ResourceInterface {
     // set cache uri to object internal variable

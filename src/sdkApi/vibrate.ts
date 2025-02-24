@@ -1,5 +1,5 @@
 import { isIos } from "../env";
-import { logError } from "../errorHandler";
+import { logError } from "../eventLogger";
 
 /**
  * https://developer.mozilla.org/en-US/docs/Web/API/Vibration_API

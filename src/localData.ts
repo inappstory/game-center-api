@@ -4,7 +4,7 @@ import { asyncQueue } from "./asyncQueue";
 import { getGameInstanceId } from "./gameLaunchConfig";
 import { webSource } from "./sdkApi/web/Source";
 import { sendIasApiRequest } from "./iasApi";
-import { logError } from "./errorHandler";
+import { logError } from "./eventLogger";
 
 export class LocalDataMap<K, V> extends Map<K, V> {
     set(key: K, value: V) {

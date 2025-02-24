@@ -1,6 +1,6 @@
 import { gameLaunchConfig } from "./gameLaunchConfig";
 import { v4 as uuidV4 } from "uuid";
-import { logError } from "./errorHandler";
+import { logError } from "./eventLogger";
 
 const prepareHeaders = (headers: RequestInfo["headers"]) => ({
     ...{

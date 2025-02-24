@@ -2,7 +2,7 @@ import { v4 as uuidV4 } from "uuid";
 import { asyncQueue } from "../asyncQueue";
 import { iosMh, isAndroid, isIos, isWeb } from "../env";
 import { webSource } from "./web/Source";
-import { logError } from "../errorHandler";
+import { logError } from "../eventLogger";
 
 type ShareData = Partial<{
     title: string | null;

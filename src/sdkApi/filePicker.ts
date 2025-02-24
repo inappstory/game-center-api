@@ -2,7 +2,7 @@ import { FilePickerResult, FilePickerResultType, LocalFile, LocalFileList, OpenF
 import { v4 as uuidV4 } from "uuid";
 import { asyncQueue } from "../asyncQueue";
 import { iosMh, isAndroid, isIos } from "../env";
-import { logError } from "../errorHandler";
+import { logError } from "../eventLogger";
 
 const defaultLang = "en";
 // TODO plural and templates for messages

@@ -1,6 +1,6 @@
 import { SemVer } from "semver";
 import { gameLaunchConfig } from "./gameLaunchConfig";
-import { logError } from "./errorHandler";
+import { logError } from "./eventLogger";
 
 const semver = require("semver");
 

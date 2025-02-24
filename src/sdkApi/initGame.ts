@@ -4,7 +4,7 @@ import { gameLaunchConfig, setGameLaunchConfig } from "../gameLaunchConfig";
 import { getSemverSdkVersion, iosMh, isAndroid, isIos, isWeb } from "../env";
 import { webSource } from "./web/Source";
 import { createNonce } from "../createNonce";
-import { logError } from "../errorHandler";
+import { logError } from "../eventLogger";
 
 const semver = require("semver");
 
@@ -29,6 +29,7 @@ declare global {
             state: string;
             description: string;
             error: string;
+            gameLaunchRawConfig?: GameLaunchConfig;
         };
         gameLoadFailed: typeof gameLoadFailedSdkCallback;
         gameShouldForeground: () => void;
@@ -41,6 +42,7 @@ const _gameLoadingInfo = {
     state: "before gameReader API creation",
     description: "",
     error: "",
+    gameLaunchRawConfig: undefined,
 };
 if (window.gameLoadingInfo != null) {
     window.gameLoadingInfo = { ...window.gameLoadingInfo, ..._gameLoadingInfo };
@@ -129,6 +131,7 @@ export const createInitGame = (initLocalData: () => Promise<void>, mounted = () 
             // prevent call window.gameLoadFailed from fallback 30s timer (if js bundle parsed and ready)
             window.gameLoadingInfo.loadStarted = true;
             window.gameLoadingInfo.state = "before call initGame";
+            window.gameLoadingInfo.gameLaunchRawConfig = config;
             window.gameLoadingInfo.description = JSON.stringify(config);
             if (!isObject(config)) {
                 logError(new Error("Invalid gameConfig"));
@@ -254,6 +257,7 @@ const _gameLoadingInfoCreated = {
     state: "gameReader API created",
     description: "",
     error: "",
+    gameLaunchRawConfig: undefined,
 };
 if (window.gameLoadingInfo != null) {
     window.gameLoadingInfo = { ...window.gameLoadingInfo, ..._gameLoadingInfoCreated };

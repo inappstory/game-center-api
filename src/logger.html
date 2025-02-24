@@ -14,7 +14,15 @@
             var keys = Object.keys(payload);
             var formData = new FormData();
             for (var i = 0; i < keys.length; ++i) {
-                formData.append(keys[i], payload[keys[i]]);
+                var value = payload[keys[i]];
+                if (typeof value !== "string") {
+                    try {
+                        value = JSON.stringify(value);
+                    } catch (e) {
+                        // do nothing
+                    }
+                }
+                formData.append(keys[i], value);
             }
             navigator.sendBeacon("https://games.inappstory.com/" + window.iasGamePackageName + "/" + window.iasGameBuildVersion + "/error.log", formData);
             ++messagesCount;
@@ -45,6 +53,7 @@
                 window.gameLoadingInfo = {
                     sourceWindow: sourceWindow,
                     sourceWindowOrigin: sourceWindowOrigin,
+                    gameLaunchRawConfig: undefined,
                 };
             }
         }
@@ -115,25 +124,6 @@
         }
     }, 30000);
 
-    var eventFromError = function (error) {
-        if (error instanceof Error) {
-            var data = {
-                name: error.name,
-                message: error.message,
-                stack: error.stack,
-            };
-            if (error.cause != null) {
-                if (error.cause instanceof Error) {
-                    data.cause = eventFromError(error.cause);
-                } else {
-                    data.cause = error.cause;
-                }
-            }
-            return data;
-        }
-        return null;
-    };
-
     window.onerror = function (msg, url, lineNo, columnNo, error) {
         // console.log({msg, url, lineNo, columnNo, error});
 
@@ -141,26 +131,7 @@
             window.gameLoadingInfo = {};
         }
 
-        var payload = {
-            type: "onerror event",
-            message: msg,
-            lineno: lineNo,
-            colno: columnNo,
-            source: url,
-        };
-        if (error) {
-            payload.error = eventFromError(error);
-        }
-        if (window.gameLoadingInfo != null) {
-            payload.loadingState = window.gameLoadingInfo.state;
-            payload.loadingDescription = window.gameLoadingInfo.description;
-        }
-
-        payload.gameReaderExists = window.gameReader != null;
-        payload.initGameExists = window.initGame != null;
-        payload.readyState = document.readyState;
-        payload.androidExists = window.Android != null;
-        payload.androidGameLoadedExists = window.Android != null && window.Android.gameLoaded != null;
+        var event = EventLogger.eventFromException(error ?? msg);
 
         window.gameLoadingInfo.error = msg;
 
@@ -178,25 +149,17 @@
         }
         // window._sendErrorLog(payload);
         // log via sdk logger and internal _sendErrorLog
-        console.error(payload);
+        console.error(event);
 
         return false;
     };
 
-    window.onunhandledrejection = function (event) {
-        var payload = {
-            type: "onunhandledrejection",
-            reason: event.reason instanceof Error ? eventFromError(event.reason) : event.reason,
-            stack: "",
-        };
-
-        if (event.promise != null && event.promise.creationPoint != null) {
-            payload.stack = event.promise.creationPoint;
-        }
+    window.onunhandledrejection = function (rawEvent) {
+        var event = EventLogger.eventFromUnhandledRejection(rawEvent);
 
         // window._sendErrorLog(payload);
         // log via sdk logger and internal _sendErrorLog
-        console.error(payload);
+        console.error(event);
     };
 
     window.console.log = function () {
@@ -239,47 +202,42 @@
         }
     };
 
+    function isObject(x) {
+        return typeof x === "object" && !Array.isArray(x) && x !== null;
+    }
+
     window.console.error = function () {
         var messages = Array.prototype.slice.call(arguments);
-        var payload = {
-            type: "console error",
-        };
-        for (var i = 0; i < messages.length; ++i) {
-            var field = "message" + String(i);
-            var value = messages[i];
-            if (!(typeof value === "string" || value instanceof Error)) {
-                try {
-                    value = JSON.stringify(value);
-                } catch (e) {
-                    value = e.message;
-                }
-            }
-            payload[field] = value;
 
-            if (window.gameLoadingInfo != null) {
-                payload.loadingState = window.gameLoadingInfo.state;
-                payload.loadingDescription = window.gameLoadingInfo.description;
-                payload.loadingLoadStarted = window.gameLoadingInfo.loadStarted;
-                payload.loadingLoaded = window.gameLoadingInfo.loaded;
-            }
+        if (messages.length <= 0) {
+            return;
+        }
+        var msg = messages[0];
+
+        var event = {};
+        // if its already event from EventLogger
+        if (isObject(msg) && msg.level != null && msg.source != null && msg.exception != null) {
+            event = msg;
+        } else {
+            event = EventLogger.eventFromConsoleErrorMessage(msg);
         }
 
-        window._sendErrorLog(payload);
-        if (messages.length && messages[0] != null) {
-            var errorAsString = "";
-            try {
-                errorAsString = JSON.stringify(messages[0]);
-            } catch (e) {
-                // nothing here
-            }
-            // for Android
-            console.errorOrigin(errorAsString);
-            // for iOS
-            if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.errorHandler) {
-                window.webkit.messageHandlers.errorHandler.postMessage(errorAsString);
-            }
-        } else {
-            console.errorOrigin(messages);
+        window._sendErrorLog(event);
+
+        var errorAsString = "";
+        try {
+            errorAsString = JSON.stringify(event);
+        } catch (e) {
+            // nothing here
+        }
+        // for Android
+        console.errorOrigin(errorAsString);
+        // for iOS
+        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.errorHandler) {
+            window.webkit.messageHandlers.errorHandler.postMessage(errorAsString);
         }
     };
+
+    // use EventLogger in handlers
+    __EVENT_LOGGER_MODULE__;
 </script>

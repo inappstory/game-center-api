@@ -27,7 +27,7 @@ import { ResourceManager } from "./ResourceManager";
 import { hasFilePickerApi, openFilePicker } from "./sdkApi/filePicker";
 import { FilePickerResultType, isFilePickerResultFileList, isFilePickerResultLocalFileList, isLocalFile } from "./sdkApi/filePicker.h";
 
-import { logError } from "./errorHandler";
+import { logError } from "./eventLogger";
 
 export type { OpenFilePickerProps, SDKFileResponse, LocalFile, LocalFileList, FilePickerResultPayload, FilePickerResult } from "./sdkApi/filePicker.h";
 

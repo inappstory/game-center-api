@@ -12,7 +12,7 @@ import { OpenStoryOptions } from "./openStory.h";
 import { gameLaunchHandlers } from "../gameLaunchConfig";
 import { asyncQueue } from "../asyncQueue";
 import { OpenGameInstanceOptions } from "./openGameInstance.h";
-import { logError } from "../errorHandler";
+import { logError } from "../eventLogger";
 
 let beforeUnmount: (() => void) | undefined;
 export const createSdkApi = ({

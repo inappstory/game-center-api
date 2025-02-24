@@ -1,5 +1,5 @@
 import { getSemverSdkVersion, isAndroid } from "../env";
-import { logError } from "../errorHandler";
+import { logError } from "../eventLogger";
 
 const semver = require("semver");
 
