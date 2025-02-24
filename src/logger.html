@@ -131,7 +131,7 @@
             window.gameLoadingInfo = {};
         }
 
-        var event = EventLogger.eventFromException(error ?? msg);
+        var event = EventLogger.eventFromException(error != null ? error : msg);
 
         window.gameLoadingInfo.error = msg;
 
