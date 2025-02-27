@@ -1,4 +1,4 @@
-import { getSemverSdkVersion, isAndroid } from "../env";
+import { getSemverSdkVersion, isAndroid, isIos } from "../env";
 import { logError } from "../eventLogger";
 
 const semver = require("semver");
@@ -83,6 +83,24 @@ export function fetchLocalFile(url: string, remoteUrl?: string): Promise<Respons
                 });
             }
         }
+    } else if (isIos) {
+        // https://stackoverflow.com/questions/40182785/why-fetch-return-a-response-with-status-0
+        // Effectively, the response you get from making such a request (with no-cors specified as a mode) will contain no information about whether the request succeeded or failed, making the status code 0.
+        // Welcome to the insane and wonderful world of CORS. A necessary(?) evil; CORS is a huge pain the ass for web developers.
+        // fetch local file on iOS return status 0, response.ok = false
+        // fallback via wrap fetch result into new Response with status 200
+        // assume that failed load - trigger catch by origin fetch
+        return new Promise(function (resolve, reject) {
+            fetch(url)
+                .then(response => {
+                    if (response.status === 0) {
+                        resolve(new Response(response.body, { status: 200 }));
+                    } else {
+                        resolve(response);
+                    }
+                })
+                .catch(reject);
+        });
     } else {
         return fetch(url);
     }

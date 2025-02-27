@@ -146,7 +146,7 @@ export class ResourceManager {
             const image = new Image();
 
             image.onload = () => resolve(originUri);
-            image.onerror = () => reject();
+            image.onerror = (event, source, lineno, colno, error) => reject(error ?? `Unable to load ${originUri} via Image object`);
 
             image.src = originUri;
         });
@@ -169,10 +169,18 @@ export class ResourceManager {
                 }
                 return URL.createObjectURL(blob);
             } else {
-                throw "";
+                if (response != null) {
+                    let responseText = "";
+                    try {
+                        responseText = await response.text();
+                    } catch (e) {}
+                    throw new Error(`Response status: ${response.status}, body: ${responseText}`);
+                } else {
+                    throw new Error("Response is undefined");
+                }
             }
         } catch (err) {
-            console.warn(`Error to fetch ${uri} for related images [${resourceKeys.join(", ")}]`, err);
+            console.warn(`Error to fetch ${uri} for related images [${resourceKeys.join(", ")}], err: ${err}`, err);
 
             return null;
         }
