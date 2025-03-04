@@ -1,9 +1,10 @@
 {
     "name": "@inappstory/game-center-api",
-    "version": "1.3.19",
+    "version": "1.3.20",
     "description": "",
     "dependencies": {
         "@sentry/browser": "^9.1.0",
+        "eventemitter3": "^5.0.1",
         "semver": "^7.3.8",
         "uuid": "^8.3.2"
     },

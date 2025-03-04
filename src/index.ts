@@ -28,6 +28,7 @@ import { hasFilePickerApi, openFilePicker } from "./sdkApi/filePicker";
 import { FilePickerResultType, isFilePickerResultFileList, isFilePickerResultLocalFileList, isLocalFile } from "./sdkApi/filePicker.h";
 
 import { logError } from "./eventLogger";
+import { UserAccelerationSensor } from "./sdkApi/UserAccelerationSensor";
 
 export type { OpenFilePickerProps, SDKFileResponse, LocalFile, LocalFileList, FilePickerResultPayload, FilePickerResult } from "./sdkApi/filePicker.h";
 
@@ -91,6 +92,7 @@ export {
     getApplicationBuildVersion,
     openGameInstance,
     logError,
+    UserAccelerationSensor,
 };
 
 const GameCenterApi = {
@@ -141,6 +143,7 @@ const GameCenterApi = {
     getApplicationBuildVersion,
     openGameInstance,
     logError,
+    UserAccelerationSensor,
 };
 
 export { GameCenterApi as default };
