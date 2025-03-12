@@ -72,6 +72,8 @@ export class ResourceManager {
 
         const promises: Array<Promise<void>> = [];
 
+        let hasInvalidResource = false;
+
         for (let resUri in this.cacheTree) {
             const { resourceForFetch, relatedResources } = this.cacheTree[resUri];
 
@@ -82,7 +84,11 @@ export class ResourceManager {
                     const originUri = resourceForFetch.getOriginUri();
 
                     try {
-                        const objectUrl = await this.cacheResource({ uri, originUri, resourceKeys: resourceKeys });
+                        const objectUrl = await this.cacheResource({
+                            uri,
+                            originUri,
+                            resourceKeys,
+                        });
 
                         if (objectUrl === originUri) {
                             resolve();
@@ -96,7 +102,14 @@ export class ResourceManager {
 
                         resolve();
                     } catch (e) {
-                        logError(e, { resourceKeys });
+                        if (hasInvalidResource) {
+                            return;
+                        }
+
+                        hasInvalidResource = true;
+
+                        logError(e);
+
                         reject(`Can't load resource for [${resourceKeys.join(", ")}]`);
                     }
                 });
@@ -108,10 +121,16 @@ export class ResourceManager {
         try {
             await Promise.all(promises);
         } catch (e) {
-            logError(e);
+            const error = new Error("Failed to execute cacheAllResources", { cause: e });
+
+            logError(error);
+
+            throw error;
         }
 
-        for (const resList of this.resLists) resList["onCacheDone"]();
+        for (const resList of this.resLists) {
+            resList["onCacheDone"]();
+        }
     }
 
     public async cacheResource({
@@ -123,66 +142,78 @@ export class ResourceManager {
         originUri?: string;
         resourceKeys?: string[];
     }): Promise<string> {
-        let objectUrl: string | null = null;
-        try {
-            objectUrl = await this.createObjectUrlByUri(uri, resourceKeys);
-        } catch (e) {
-            logError(e, { uri, resourceKeys });
+        let objectUrl: string | { failMessage: string } = { failMessage: "" };
+
+        objectUrl = await this.createObjectUrlByUri(uri, resourceKeys);
+
+        if (typeof objectUrl !== "string" && uri !== originUri) {
+            logError(`Warning: ${objectUrl.failMessage}`, { uri });
+
+            objectUrl = await this.createObjectUrlByUri(originUri, resourceKeys);
         }
 
-        if (objectUrl === null && uri !== originUri) {
-            try {
-                objectUrl = await this.createObjectUrlByUri(originUri, resourceKeys);
-            } catch (e) {
-                logError(e, { originUri, resourceKeys });
-            }
-        }
-
-        if (objectUrl !== null) {
+        if (typeof objectUrl === "string") {
             return objectUrl;
         }
+
+        logError(`Warning: ${objectUrl.failMessage}`, { originUri });
 
         return new Promise((resolve, reject) => {
             const image = new Image();
 
-            image.onload = () => resolve(originUri);
-            image.onerror = (event, source, lineno, colno, error) => reject(error ?? `Unable to load ${originUri} via Image object`);
+            image.onload = () => {
+                resolve(originUri);
+            };
+            image.onerror = (event, source, lineno, colno, error) => {
+                reject(
+                    new Error(`Unable to load ${originUri} via Image object`, { cause: new Error(`Fetch info: ${objectUrl.failMessage}`, { cause: error }) })
+                );
+            };
 
             image.src = originUri;
         });
     }
-    private async createObjectUrlByUri(uri: string, resourceKeys: string[]): Promise<null | string> {
-        if (!uri) {
-            throw `Resource uri for [${resourceKeys.join(", ")}] can't be empty string`;
-        }
-
+    private async createObjectUrlByUri(uri: string, resourceKeys: string[]): Promise<{ failMessage: string } | string> {
         try {
+            if (!uri) {
+                throw `Resource uri must be a valid string`;
+            }
+
             const response = await fetchLocalFile(uri);
 
             if (response != null && response.ok) {
                 let blob: Blob = null!;
+
                 try {
                     blob = await response.blob();
                 } catch (e) {
-                    logError(e);
                     throw e;
                 }
+
                 return URL.createObjectURL(blob);
             } else {
                 if (response != null) {
-                    let responseText = "";
+                    let responseText = "unknown";
+
                     try {
                         responseText = await response.text();
                     } catch (e) {}
-                    throw new Error(`Response status: ${response.status}, body: ${responseText}`);
+
+                    throw `Response status: ${response.status}, response text: ${responseText}`;
                 } else {
-                    throw new Error("Response is undefined");
+                    throw "Response is undefined";
                 }
             }
-        } catch (err) {
-            console.warn(`Error to fetch ${uri} for related images [${resourceKeys.join(", ")}], err: ${err}`, err);
+        } catch (e) {
+            let errorInfo = "unknown";
 
-            return null;
+            if (typeof e === "string") {
+                errorInfo = e;
+            } else if (e && typeof e === "object" && "message" in e && typeof e.message === "string") {
+                errorInfo = e.message;
+            }
+
+            return { failMessage: `Unable to fetch ${uri ? uri : "empty uri"} for related images [${resourceKeys.join(", ")}], info: ${errorInfo}` };
         }
     }
     public revokeCache(): void {

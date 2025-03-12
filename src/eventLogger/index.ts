@@ -7,22 +7,33 @@ import { TraceablePromise } from "../TraceablePromise";
  * this method collect Error stack to error logger
  **/
 export const logError = (e: unknown, cause?: any): void => {
-    let error: Error | null = null;
+    let error: Error | unknown[] | null = null;
 
     if (e instanceof Error) {
         error = e as Error;
-        if (cause != null) {
-            error.cause = cause;
+
+        if (cause !== null) {
+            const originErrorCause = error.cause ?? null;
+
+            if (originErrorCause === null) {
+                error.cause = cause;
+            } else {
+                error.cause = cause;
+
+                error = [error, originErrorCause];
+            }
         }
     }
 
     if (typeof e === "string") {
         error = new Error(e);
+
+        cause !== null && (error.cause = cause);
     }
 
     if (error !== null) {
         // will be handled via sdk console.error override
-        console.error(eventFromConsoleErrorMessage(e));
+        console.error(eventFromConsoleErrorMessage(error));
     } else {
         console.error(e);
     }
@@ -155,8 +166,15 @@ function exceptionFromError(stackParser: typeof defaultStackParser, error: Error
         type: error.name || error.constructor.name,
         value: error.message,
     };
-    if (error.cause != null && typeof error.cause === "string") {
-        exception.cause = error.cause;
+
+    if (error.cause != null) {
+        if (typeof error.cause === "string") {
+            exception.cause = error.cause;
+        } else if (isError(error.cause) === false) {
+            try {
+                exception.cause = JSON.stringify(error.cause);
+            } catch (_) {}
+        }
     }
 
     const frames = stackParser(error.stack || "", 0);
@@ -194,13 +212,19 @@ const eventFromException = (exception: unknown): Event => {
     return event;
 };
 
-export const eventFromConsoleErrorMessage = (exception: unknown): Event => {
+export const eventFromConsoleErrorMessage = (exceptions: unknown): Event => {
+    const values: Exception[] = [];
+
+    const exceptionArray: unknown[] = Array.isArray(exceptions) ? exceptions : [exceptions];
+
+    exceptionArray.forEach(exception => {
+        values.push(...flatErrorCause(getException(exception)).map(error => exceptionFromError(defaultStackParser, error)));
+    });
+
     const event: Event = {
         level: "error",
         source: "consoleErrorMessage",
-        exception: {
-            values: flatErrorCause(getException(exception)).map(error => exceptionFromError(defaultStackParser, error)),
-        },
+        exception: { values },
         gameLoaded: false,
         gameLaunchRawConfig: {},
         gameSlug: "",
