@@ -1,6 +1,6 @@
 import { fetchLocalFile } from "./sdkApi/fetchLocalFile";
 import { type ResourceList } from "./gameResources";
-import { logError } from "./eventLogger";
+import { logError, logWarning } from "./eventLogger";
 
 export interface ResourceInterface {
     // set cache uri to object internal variable
@@ -10,7 +10,7 @@ export interface ResourceInterface {
 
     getUri(): string;
 
-    // for case when resource at getOriginUri is unavailable (Android SDK before 1.18.0)
+    // for case when resource at getUri is unavailable (Android SDK before 1.18.0)
     getOriginUri(): string;
 
     unsetCacheUri(): void;
@@ -60,6 +60,7 @@ export class ResourceManager {
 
         if (resource.getOrderOfFetch() > branch.resourceForFetch.getOrderOfFetch()) branch.resourceForFetch = resource;
     };
+
     private createCacheTree() {
         for (let srcInterfaceKey in this.resLists) {
             for (let resource of this.resLists[srcInterfaceKey]) {
@@ -67,6 +68,7 @@ export class ResourceManager {
             }
         }
     }
+
     public async cacheAllResources() {
         this.createCacheTree();
 
@@ -146,9 +148,11 @@ export class ResourceManager {
 
         objectUrl = await this.createObjectUrlByUri(uri, resourceKeys);
 
-        if (typeof objectUrl !== "string" && uri !== originUri) {
-            logError(`Warning: ${objectUrl.failMessage}`, { uri });
+        if (typeof objectUrl !== "string") {
+            logWarning(objectUrl.failMessage, { uri });
+        }
 
+        if (typeof objectUrl !== "string" && uri !== originUri) {
             objectUrl = await this.createObjectUrlByUri(originUri, resourceKeys);
         }
 
@@ -166,13 +170,16 @@ export class ResourceManager {
             };
             image.onerror = (event, source, lineno, colno, error) => {
                 reject(
-                    new Error(`Unable to load ${originUri} via Image object`, { cause: new Error(`Fetch info: ${objectUrl.failMessage}`, { cause: error }) })
+                    new Error(`Unable to load ${originUri} via Image object`, {
+                        cause: new Error(`Fetch info: ${typeof objectUrl !== "string" ? objectUrl.failMessage : ""}`, { cause: error }),
+                    })
                 );
             };
 
             image.src = originUri;
         });
     }
+
     private async createObjectUrlByUri(uri: string, resourceKeys: string[]): Promise<{ failMessage: string } | string> {
         try {
             if (!uri) {
@@ -216,6 +223,7 @@ export class ResourceManager {
             return { failMessage: `Unable to fetch ${uri ? uri : "empty uri"} for related images [${resourceKeys.join(", ")}], info: ${errorInfo}` };
         }
     }
+
     public revokeCache(): void {
         for (let resUri in this.cacheTree) {
             const { resourceForFetch, relatedResources } = this.cacheTree[resUri];

@@ -64,7 +64,7 @@ export function fetchLocalFile(url: string, remoteUrl?: string): Promise<Respons
                 return fetch(remoteUrl);
             } else {
                 return new Promise(function (resolve, reject) {
-                    var xhr = new XMLHttpRequest();
+                    const xhr = new XMLHttpRequest();
                     xhr.onload = function () {
                         // status 0 in android 9+
                         try {

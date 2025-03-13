@@ -39,13 +39,50 @@ export const logError = (e: unknown, cause?: any): void => {
     }
 };
 
+/**
+ * for call instead of console.warn(err)
+ * this method collect Error stack to error logger
+ **/
+export const logWarning = (e: unknown, cause?: any): void => {
+    let error: Error | unknown[] | null = null;
+
+    if (e instanceof Error) {
+        error = e as Error;
+
+        if (cause !== null) {
+            const originErrorCause = error.cause ?? null;
+
+            if (originErrorCause === null) {
+                error.cause = cause;
+            } else {
+                error.cause = cause;
+
+                error = [error, originErrorCause];
+            }
+        }
+    }
+
+    if (typeof e === "string") {
+        error = new Error(e);
+
+        cause !== null && (error.cause = cause);
+    }
+
+    if (error !== null) {
+        // will be handled via sdk console.error override
+        console.warn(eventFromConsoleWarningMessage(error));
+    } else {
+        console.warn(e);
+    }
+};
+
 /** An event to be sent to API. */
 interface Event {
     exception?: {
         values?: Array<Exception>;
     };
     level?: SentrySeverityLevel;
-    source?: "onerror" | "onunhandledrejection" | "consoleErrorMessage";
+    source?: "onerror" | "onunhandledrejection" | "consoleErrorMessage" | "consoleWarningMessage";
     gameLoaded: boolean;
     gameLaunchRawConfig: Record<string, any>;
     gameVersion: string;
@@ -213,6 +250,14 @@ const eventFromException = (exception: unknown): Event => {
 };
 
 export const eventFromConsoleErrorMessage = (exceptions: unknown): Event => {
+    return eventFromConsoleMessage(exceptions, "error", "consoleErrorMessage");
+};
+
+export const eventFromConsoleWarningMessage = (exceptions: unknown): Event => {
+    return eventFromConsoleMessage(exceptions, "warning", "consoleWarningMessage");
+};
+
+const eventFromConsoleMessage = (exceptions: unknown, level: "error" | "warning", source: "consoleErrorMessage" | "consoleWarningMessage"): Event => {
     const values: Exception[] = [];
 
     const exceptionArray: unknown[] = Array.isArray(exceptions) ? exceptions : [exceptions];
@@ -222,8 +267,8 @@ export const eventFromConsoleErrorMessage = (exceptions: unknown): Event => {
     });
 
     const event: Event = {
-        level: "error",
-        source: "consoleErrorMessage",
+        level,
+        source,
         exception: { values },
         gameLoaded: false,
         gameLaunchRawConfig: {},
@@ -304,6 +349,7 @@ const eventFromUnhandledRejection = (rawEvent: PromiseRejectionEvent): Event => 
 const EventLogger = {
     eventFromException,
     eventFromConsoleErrorMessage,
+    eventFromConsoleWarningMessage,
     eventFromUnhandledRejection,
 };
 

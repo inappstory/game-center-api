@@ -238,6 +238,38 @@
         }
     };
 
+    window.console.warn = function () {
+        var messages = Array.prototype.slice.call(arguments);
+
+        if (messages.length <= 0) {
+            return;
+        }
+        var msg = messages[0];
+
+        var event = {};
+        // if its already event from EventLogger
+        if (isObject(msg) && msg.level != null && msg.source != null && msg.exception != null) {
+            event = msg;
+        } else {
+            event = EventLogger.eventFromConsoleErrorMessage(msg);
+        }
+
+        // window._sendErrorLog(event);
+
+        var warningAsString = "";
+        try {
+            warningAsString = JSON.stringify(event);
+        } catch (e) {
+            // nothing here
+        }
+        // for Android
+        console.warnOrigin(warningAsString);
+        // for iOS
+        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.warnHandler) {
+            window.webkit.messageHandlers.warnHandler.postMessage(warningAsString);
+        }
+    };
+
     // use EventLogger in handlers
     __EVENT_LOGGER_MODULE__;
 </script>

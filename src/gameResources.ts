@@ -61,8 +61,7 @@ export abstract class ResourceList implements Iterable<ResourceInterface> {
 
             for (let key in map) {
                 src = map[key];
-
-                this._hashMap[key] = new Resource(key, this.prepareSrc(src, key), src, this.orderOfFetch);
+                this._hashMap[key] = new Resource(key, this.prepareSrc(src, key), this.convertToOriginUri(src), this.orderOfFetch);
             }
         }
 
@@ -83,6 +82,10 @@ export abstract class ResourceList implements Iterable<ResourceInterface> {
 
     protected prepareSrc(src: string, key: string) {
         return src;
+    }
+
+    protected convertToOriginUri(uri: string): string {
+        return uri;
     }
 
     protected onCacheDone() {}
@@ -123,8 +126,8 @@ export abstract class DynamicResourceList extends ResourceList {
 }
 
 export class DynamicResourceAssets extends DynamicResourceList {
-    protected rawMapGetter(): Record<string, string> {
-        return (gameLaunchConfig?.gameResources?.assets ?? {}) as unknown as Record<string, string>;
+    protected override rawMapGetter(): Record<string, string> {
+        return gameLaunchConfig?.gameResources?.assets ?? {};
     }
 }
 
@@ -149,8 +152,8 @@ export enum SecondaryFontVariants {
 }
 
 export class DynamicResourceFonts extends DynamicResourceList {
-    protected rawMapGetter(): Record<string, string> {
-        return (gameLaunchConfig?.gameResources?.fonts ?? {}) as unknown as Record<string, string>;
+    protected override rawMapGetter(): Record<string, string> {
+        return gameLaunchConfig?.gameResources?.fonts ?? {};
     }
 }
 
@@ -296,11 +299,13 @@ export const getProjectFontFamilyStylesheet = () => {
 };
 
 export class StaticResourcesImagePlaceholders extends StaticResourceList {
-    protected rawMapGetter(): Record<string, string> {
+    protected override rawMapGetter(): Record<string, string> {
         let map: Record<string, string> = {};
 
         for (const placeholder of gameLaunchConfig.clientConfig.placeholders) {
-            if (placeholder.type === PlaceholderType.IMAGE) map[placeholder.name] = placeholder.originValue ?? "";
+            if (placeholder.type === PlaceholderType.IMAGE) {
+                map[placeholder.name] = placeholder.originValue ?? "";
+            }
         }
 
         return map;
