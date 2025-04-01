@@ -27,6 +27,7 @@ export type GameLaunchConfig = {
     gameSlug: string;
     gameVersion: string;
     verbose: boolean;
+    authUrl: string;
     clientConfig: {
         apiBaseUrl: string;
         apiKey: string;
