@@ -29,6 +29,7 @@ import { FilePickerResultType, isFilePickerResultFileList, isFilePickerResultLoc
 
 import { logError, logWarning } from "./eventLogger";
 import { UserAccelerationSensor } from "./sdkApi/UserAccelerationSensor";
+import { base64url_decode } from "./helpers/base64urlDecode";
 
 export type { OpenFilePickerProps, SDKFileResponse, LocalFile, LocalFileList, FilePickerResultPayload, FilePickerResult } from "./sdkApi/filePicker.h";
 
@@ -94,6 +95,7 @@ export {
     logError,
     logWarning,
     UserAccelerationSensor,
+    base64url_decode,
 };
 
 const GameCenterApi = {
@@ -146,6 +148,7 @@ const GameCenterApi = {
     logError,
     logWarning,
     UserAccelerationSensor,
+    base64url_decode,
 };
 
 export { GameCenterApi as default };
