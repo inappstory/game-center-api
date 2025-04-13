@@ -17,7 +17,7 @@ import { openUrl } from "./sdkApi/openUrl";
 import { shareText, shareUrl, shareFiles } from "./sdkApi/share";
 import { vibrate } from "./sdkApi/vibrate";
 import { ScreenOrientation, Placeholder, PlaceholderType, GameLaunchConfig } from "./gameLaunchConfig.h";
-import { fetchLocalFile } from "./sdkApi/fetchLocalFile";
+import { fetchLocalFile, convertLocalFileUriToRemoteFileUri } from "./sdkApi/fetchLocalFile";
 
 import { openStory } from "./sdkApi/openStory";
 import { openGameInstance } from "./sdkApi/openGameInstance";
@@ -44,6 +44,7 @@ export type { ResourceInterface } from "./ResourceManager";
 
 export type { OpenStoryOptions } from "./sdkApi/openStory.h";
 export type { OpenGameInstanceOptions } from "./sdkApi/openGameInstance.h";
+export type { FetchLocalFileOptions } from "./sdkApi/fetchLocalFile";
 
 export {
     createSdkApi,
@@ -73,6 +74,7 @@ export {
     ScreenOrientation,
     PlaceholderType,
     fetchLocalFile,
+    convertLocalFileUriToRemoteFileUri,
     openStory,
     ResourceManager,
     dynamicResourceAssets,
@@ -126,6 +128,7 @@ const GameCenterApi = {
     ScreenOrientation,
     PlaceholderType,
     fetchLocalFile,
+    convertLocalFileUriToRemoteFileUri,
     openStory,
     ResourceManager,
     dynamicResourceAssets,

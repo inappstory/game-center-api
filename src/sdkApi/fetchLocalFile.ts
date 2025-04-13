@@ -1,5 +1,6 @@
 import { getSemverSdkVersion, isAndroid, isIos } from "../env";
 import { logError } from "../eventLogger";
+import { gameLaunchConfig } from "../gameLaunchConfig";
 
 const semver = require("semver");
 
@@ -25,16 +26,21 @@ class URLResolver {
     }
 }
 
-function fetchLocalAndroid(url: string) {
+function fetchLocalAndroid(url: string, init?: RequestInit) {
     if (url.substring(0, 1) === "/" || url.substring(0, 2) === "./") {
         url = URLResolver.getInstance().resolve(url);
     }
 
     // if sdk 1.16.2+
-    return fetch(url.replace("file:///", "http://file-assets/"));
+    return fetch(url.replace("file:///", "http://file-assets/"), init);
 }
-
-export function fetchLocalFile(url: string, remoteUrl?: string): Promise<Response | undefined> {
+export type FetchLocalFileOptions = {
+    remoteUrl?: string;
+    fetchOptions?: RequestInit;
+    iOSUseXhr?: boolean;
+    xhrResponseHeaders?: Array<[key: string, value: string]>;
+};
+export function fetchLocalFile(url: string, options?: FetchLocalFileOptions | undefined): Promise<Response | undefined> {
     if (isAndroid) {
         const semverVersion = getSemverSdkVersion();
         let sdkSupportFileAssetsProtocol = true;
@@ -54,14 +60,13 @@ export function fetchLocalFile(url: string, remoteUrl?: string): Promise<Respons
         }
 
         if (sdkSupportFileAssetsProtocol) {
-            return fetchLocalAndroid(url);
+            return fetchLocalAndroid(url, options?.fetchOptions);
         } else {
             if (!sdkCanFetchLocalFile) {
-                remoteUrl += "&stamp=" + new Date().getTime();
-                if (!remoteUrl) {
+                if (!options?.remoteUrl) {
                     return Promise.resolve(undefined);
                 }
-                return fetch(remoteUrl);
+                return fetch(options.remoteUrl + "&stamp=" + new Date().getTime(), options?.fetchOptions);
             } else {
                 return new Promise(function (resolve, reject) {
                     const xhr = new XMLHttpRequest();
@@ -84,24 +89,78 @@ export function fetchLocalFile(url: string, remoteUrl?: string): Promise<Respons
             }
         }
     } else if (isIos) {
-        // https://stackoverflow.com/questions/40182785/why-fetch-return-a-response-with-status-0
-        // Effectively, the response you get from making such a request (with no-cors specified as a mode) will contain no information about whether the request succeeded or failed, making the status code 0.
-        // Welcome to the insane and wonderful world of CORS. A necessary(?) evil; CORS is a huge pain the ass for web developers.
-        // fetch local file on iOS return status 0, response.ok = false
-        // fallback via wrap fetch result into new Response with status 200
-        // assume that failed load - trigger catch by origin fetch
-        return new Promise(function (resolve, reject) {
-            fetch(url)
-                .then(response => {
-                    if (response.status === 0) {
-                        resolve(new Response(response.body, { status: 200 }));
-                    } else {
-                        resolve(response);
+        if (options?.iOSUseXhr) {
+            return new Promise(function (resolve, reject) {
+                const xhr = new XMLHttpRequest();
+                xhr.onload = function () {
+                    try {
+                        resolve(
+                            new Response(xhr.response, {
+                                status: 200,
+                                headers: options?.xhrResponseHeaders ? new Headers(options?.xhrResponseHeaders) : undefined,
+                            })
+                        );
+                    } catch (e) {
+                        logError(e);
+                        reject(e);
                     }
-                })
-                .catch(reject);
-        });
+                };
+                xhr.onerror = function () {
+                    reject(new TypeError("Local request failed"));
+                };
+                xhr.open("GET", url);
+                xhr.responseType = "arraybuffer";
+                xhr.send(null);
+            });
+        } else {
+            // https://stackoverflow.com/questions/40182785/why-fetch-return-a-response-with-status-0
+            // Effectively, the response you get from making such a request (with no-cors specified as a mode) will contain no information about whether the request succeeded or failed, making the status code 0.
+            // Welcome to the insane and wonderful world of CORS. A necessary(?) evil; CORS is a huge pain the ass for web developers.
+            // fetch local file on iOS return status 0, response.ok = false
+            // fallback via wrap fetch result into new Response with status 200
+            // assume that failed load - trigger catch by origin fetch
+            return new Promise(function (resolve, reject) {
+                fetch(url)
+                    .then(response => {
+                        if (response.status === 0) {
+                            resolve(new Response(response.body, { status: 200 }));
+                        } else {
+                            resolve(response);
+                        }
+                    })
+                    .catch(reject);
+            });
+        }
     } else {
         return fetch(url);
     }
 }
+
+/**
+ * Provide remote network URI - for fetchLocalFile fallback src (applied only for Native SDK)
+ */
+export const convertLocalFileUriToRemoteFileUri = (uri: string): string => {
+    let baseUri = String(gameLaunchConfig.gameDomain).trimEnd();
+    if (baseUri.charAt(baseUri.length - 1) !== "/") {
+        baseUri += "/";
+    }
+
+    let pathname = uri;
+    if (uri.substring(0, 1) === "/" || uri.substring(0, 2) === "./") {
+        pathname = uri;
+    } else {
+        try {
+            pathname = new URL(uri).pathname;
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    if (pathname.substring(0, 1) === "/") {
+        pathname = pathname.substring(1);
+    } else if (pathname.substring(0, 2) === "./") {
+        pathname = pathname.substring(2);
+    }
+
+    return baseUri + pathname;
+};

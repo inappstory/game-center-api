@@ -125,7 +125,7 @@ const gameReader: GameReaderInit = (function () {
 
 window.gameReader = gameReader;
 
-export const createInitGame = (initLocalData: () => Promise<void>, mounted = () => {}) => {
+export const createInitGame = (initLocalData: () => Promise<void>, mounted: () => Promise<void> = () => Promise.resolve()) => {
     window.initGame = async function (config: GameLaunchConfig) {
         try {
             // prevent call window.gameLoadFailed from fallback 30s timer (if js bundle parsed and ready)
@@ -163,7 +163,11 @@ export const createInitGame = (initLocalData: () => Promise<void>, mounted = () 
                 throw e;
             }
 
-            mounted();
+            try {
+                await mounted();
+            } catch (e) {
+                gameLoadFailedSdkCallback((e as Error).message, false);
+            }
 
             window.gameLoadingInfo.state = "after call initGame";
             window.gameLoadingInfo.description = JSON.stringify(config);

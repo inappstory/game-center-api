@@ -1,7 +1,7 @@
 import { Placeholder } from "../gameLaunchConfig.h";
 
 export type SdkApiCallbacks = Partial<{
-    mounted: () => void;
+    mounted: () => Promise<void>;
     beforeUnmount: () => void;
     onSdkCloseGameReaderIntent: () => void; // for instance - click on GameReader backdrop on Tablet or Desktop
     onPause: () => void;
