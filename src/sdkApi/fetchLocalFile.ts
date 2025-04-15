@@ -38,6 +38,7 @@ export type FetchLocalFileOptions = {
     remoteUrl?: string;
     fetchOptions?: RequestInit;
     iOSUseXhr?: boolean;
+    AndroidUseXhr?: boolean;
     xhrResponseHeaders?: Array<[key: string, value: string]>;
 };
 export function fetchLocalFile(url: string, options?: FetchLocalFileOptions | undefined): Promise<Response | undefined> {
@@ -59,7 +60,35 @@ export function fetchLocalFile(url: string, options?: FetchLocalFileOptions | un
             }
         }
 
+        const fetchViaXhr = () =>
+            new Promise<Response>(function (resolve, reject) {
+                const xhr = new XMLHttpRequest();
+                xhr.onload = function () {
+                    // status 0 in android 9+
+                    try {
+                        resolve(
+                            new Response(xhr.response, {
+                                status: xhr.status >= 200 && xhr.status <= 599 ? xhr.status : 200,
+                                headers: options?.xhrResponseHeaders ? new Headers(options?.xhrResponseHeaders) : undefined,
+                            })
+                        );
+                    } catch (e) {
+                        logError(e);
+                        reject(e);
+                    }
+                };
+                xhr.onerror = function () {
+                    reject(new TypeError("Local request failed"));
+                };
+                xhr.open("GET", url);
+                xhr.responseType = "arraybuffer";
+                xhr.send(null);
+            });
+
         if (sdkSupportFileAssetsProtocol) {
+            if (options?.AndroidUseXhr) {
+                return fetchViaXhr();
+            }
             return fetchLocalAndroid(url, options?.fetchOptions);
         } else {
             if (!sdkCanFetchLocalFile) {
@@ -68,24 +97,7 @@ export function fetchLocalFile(url: string, options?: FetchLocalFileOptions | un
                 }
                 return fetch(options.remoteUrl + "&stamp=" + new Date().getTime(), options?.fetchOptions);
             } else {
-                return new Promise(function (resolve, reject) {
-                    const xhr = new XMLHttpRequest();
-                    xhr.onload = function () {
-                        // status 0 in android 9+
-                        try {
-                            resolve(new Response(xhr.response, { status: xhr.status >= 200 && xhr.status <= 599 ? xhr.status : 200 }));
-                        } catch (e) {
-                            logError(e);
-                            reject(e);
-                        }
-                    };
-                    xhr.onerror = function () {
-                        reject(new TypeError("Local request failed"));
-                    };
-                    xhr.open("GET", url);
-                    xhr.responseType = "arraybuffer";
-                    xhr.send(null);
-                });
+                return fetchViaXhr();
             }
         }
     } else if (isIos) {
