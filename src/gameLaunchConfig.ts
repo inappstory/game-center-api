@@ -4,7 +4,9 @@ import semver from "semver";
 import { base64url_decode } from "./helpers/base64urlDecode";
 import { staticResourcesImagePlaceholders } from "./gameResources";
 
-export const gameLaunchConfig = {} as GameLaunchConfig;
+export const gameLaunchConfig = {
+    clientConfig: {},
+} as GameLaunchConfig;
 export const gameLaunchHandlers = {
     filterPlaceholders: (placeholders: Placeholder[]) => placeholders,
 };
@@ -15,7 +17,7 @@ export function setGameLaunchConfig(config: GameLaunchConfig) {
         gameLaunchConfig[key] = config[key];
     }
 
-    checkUserId(gameLaunchConfig?.clientConfig.userId);
+    checkUserId(gameLaunchConfig.clientConfig.userId);
 
     processImagePlaceholders();
 
@@ -36,6 +38,10 @@ export function getSessionId() {
 
 export function getApiBaseUrl() {
     return gameLaunchConfig.clientConfig.apiBaseUrl;
+}
+
+export function getTextWritingDir() {
+    return gameLaunchConfig.clientConfig.dir;
 }
 
 function checkUserId(userId: string | number) {
@@ -69,7 +75,7 @@ function checkUserId(userId: string | number) {
 }
 
 function processImagePlaceholders() {
-    if (gameLaunchConfig?.clientConfig?.placeholders && Array.isArray(gameLaunchConfig?.clientConfig?.placeholders)) {
+    if (gameLaunchConfig.clientConfig?.placeholders && Array.isArray(gameLaunchConfig.clientConfig?.placeholders)) {
         const placeholders = gameLaunchHandlers.filterPlaceholders(gameLaunchConfig.clientConfig.placeholders);
 
         for (let i = 0; i < placeholders.length; ++i) {

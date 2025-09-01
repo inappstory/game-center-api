@@ -146,14 +146,20 @@ export const createInitGame = (initLocalData: () => Promise<void>, mounted: () =
                 window.__config = config;
             }
 
-            if (gameLaunchConfig?.clientConfig?.nonce) {
-                createNonce(gameLaunchConfig?.clientConfig?.nonce);
+            if (gameLaunchConfig.clientConfig?.nonce) {
+                createNonce(gameLaunchConfig.clientConfig?.nonce);
             }
 
-            if (gameLaunchConfig?.clientConfig?.dir) {
+            if (gameLaunchConfig.clientConfig.dir) {
                 // for web-sdk - set dir attribute from clientConfig
                 // bcz web-sdk cannot access to document.documentElement inside game iFrame
-                window.document.documentElement.dir = gameLaunchConfig?.clientConfig?.dir;
+                window.document.documentElement.dir = gameLaunchConfig.clientConfig.dir;
+            }
+
+            if (window.document.documentElement.dir === "rtl") {
+                gameLaunchConfig.clientConfig.dir = "rtl";
+            } else {
+                gameLaunchConfig.clientConfig.dir = window.document.documentElement.dir = "ltr";
             }
 
             try {

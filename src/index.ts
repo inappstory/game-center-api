@@ -1,5 +1,5 @@
 import { getApplicationBuildVersion, getApplicationVersion, getSdkVersion, getSemverSdkVersion, isAndroid, isDev, isIos, isWeb } from "./env";
-import { gameLaunchConfig, getIsDemoMode, getSessionId, getApiBaseUrl } from "./gameLaunchConfig";
+import { gameLaunchConfig, getIsDemoMode, getSessionId, getApiBaseUrl, getTextWritingDir } from "./gameLaunchConfig";
 import {
     getDynamicResourceAsset,
     getDynamicResourceFont,
@@ -72,6 +72,7 @@ export {
     getIsDemoMode,
     getSessionId,
     getApiBaseUrl,
+    getTextWritingDir,
     ScreenOrientation,
     PlaceholderType,
     fetchLocalFile,
@@ -127,6 +128,7 @@ const GameCenterApi = {
     getIsDemoMode,
     getSessionId,
     getApiBaseUrl,
+    getTextWritingDir,
     ScreenOrientation,
     PlaceholderType,
     fetchLocalFile,
