@@ -12,10 +12,7 @@ export const gameLaunchHandlers = {
 };
 
 export function setGameLaunchConfig(config: GameLaunchConfig) {
-    for (const key in config) {
-        // @ts-ignore
-        gameLaunchConfig[key] = config[key];
-    }
+    Object.assign(gameLaunchConfig, config);
 
     checkUserId(gameLaunchConfig.clientConfig.userId);
 

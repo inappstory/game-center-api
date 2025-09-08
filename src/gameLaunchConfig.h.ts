@@ -29,6 +29,7 @@ export type GameLaunchConfig = {
     verbose: boolean;
     authUrl: string;
     payload: string;
+    localization?: Record<string, string> | null;
     clientConfig: {
         apiBaseUrl: string;
         apiKey: string;
