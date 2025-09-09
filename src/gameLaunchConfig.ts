@@ -17,6 +17,7 @@ export function setGameLaunchConfig(config: GameLaunchConfig) {
     checkUserId(gameLaunchConfig.clientConfig.userId);
 
     processImagePlaceholders();
+    processLocalization();
 
     Object.freeze(gameLaunchConfig);
 }
@@ -91,4 +92,14 @@ function processImagePlaceholders() {
 
         gameLaunchConfig.clientConfig.placeholders = placeholders;
     }
+}
+
+function processLocalization() {
+    gameLaunchConfig.localization = Object.assign(
+        {
+            lang: gameLaunchConfig.clientConfig.lang ?? "en",
+            resources: null,
+        },
+        gameLaunchConfig.localization ?? {}
+    );
 }
