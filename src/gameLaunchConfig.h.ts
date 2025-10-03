@@ -30,6 +30,7 @@ export type GameLaunchConfig = {
     authUrl: string;
     payload: string;
     localization: { lang: string; resources: Record<string, Record<string, string>> | null };
+    schemeAppearance?: Record<string, unknown>;
     clientConfig: {
         apiBaseUrl: string;
         apiKey: string;
