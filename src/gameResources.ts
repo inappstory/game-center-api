@@ -133,7 +133,7 @@ export class DynamicResourceAssets extends DynamicResourceList {
 
 export const dynamicResourceAssets = new DynamicResourceAssets();
 
-export const getDynamicResourceAsset = (key: string, defaultValue: any) => {
+export const getDynamicResourceAsset = <T>(key: string, defaultValue: T) => {
     return dynamicResourceAssets.getAssetByKey(key, defaultValue);
 };
 
