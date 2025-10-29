@@ -57,5 +57,6 @@ export type GameLaunchConfig = {
         userAgent: string;
         userId: string;
         nonce?: string;
+        variables?: Record<string, any>;
     };
 };
