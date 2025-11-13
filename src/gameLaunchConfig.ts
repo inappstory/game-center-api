@@ -19,6 +19,8 @@ export function setGameLaunchConfig(config: GameLaunchConfig) {
     processImagePlaceholders();
     processLocalization();
 
+    gameLaunchConfig.clientConfig.variables = gameLaunchConfig.clientConfig.variables ?? {};
+
     Object.freeze(gameLaunchConfig);
 }
 
