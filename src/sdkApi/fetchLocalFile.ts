@@ -27,13 +27,17 @@ class URLResolver {
 }
 
 function fetchLocalAndroid(url: string, init?: RequestInit) {
+    // if sdk 1.16.2+
+    return fetch(convertToAndroidFileAssetsProtocol(url), init);
+}
+
+const convertToAndroidFileAssetsProtocol = (url: string): string => {
     if (url.substring(0, 1) === "/" || url.substring(0, 2) === "./") {
         url = URLResolver.getInstance().resolve(url);
     }
+    return url.replace("file:///", "http://file-assets/");
+};
 
-    // if sdk 1.16.2+
-    return fetch(url.replace("file:///", "http://file-assets/"), init);
-}
 export type FetchLocalFileOptions = {
     remoteUrl?: string;
     fetchOptions?: RequestInit;
@@ -60,7 +64,7 @@ export function fetchLocalFile(url: string, options?: FetchLocalFileOptions | un
             }
         }
 
-        const fetchViaXhr = () =>
+        const fetchViaXhr = (xhrUrl: string) =>
             new Promise<Response>(function (resolve, reject) {
                 const xhr = new XMLHttpRequest();
                 xhr.onload = function () {
@@ -80,14 +84,14 @@ export function fetchLocalFile(url: string, options?: FetchLocalFileOptions | un
                 xhr.onerror = function () {
                     reject(new TypeError("Local request failed"));
                 };
-                xhr.open("GET", url);
+                xhr.open("GET", xhrUrl);
                 xhr.responseType = "arraybuffer";
                 xhr.send(null);
             });
 
         if (sdkSupportFileAssetsProtocol) {
             if (options?.AndroidUseXhr) {
-                return fetchViaXhr();
+                return fetchViaXhr(convertToAndroidFileAssetsProtocol(url));
             }
             return fetchLocalAndroid(url, options?.fetchOptions);
         } else {
@@ -97,7 +101,7 @@ export function fetchLocalFile(url: string, options?: FetchLocalFileOptions | un
                 }
                 return fetch(options.remoteUrl + "&stamp=" + new Date().getTime(), options?.fetchOptions);
             } else {
-                return fetchViaXhr();
+                return fetchViaXhr(url);
             }
         }
     } else if (isIos) {
