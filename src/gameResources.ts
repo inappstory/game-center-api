@@ -8,6 +8,8 @@ import { PlaceholderType } from "./gameLaunchConfig.h";
 export class Resource implements ResourceInterface {
     private _cacheUri: string = "";
 
+    protected _isCached: boolean = false;
+
     constructor(
         private readonly _key: string,
         private readonly _uri: string,
@@ -23,6 +25,7 @@ export class Resource implements ResourceInterface {
 
     setCacheUri(uri: string): void {
         this._cacheUri = uri;
+        this._isCached = true;
     }
 
     getCacheUri(): string {
@@ -31,6 +34,7 @@ export class Resource implements ResourceInterface {
 
     unsetCacheUri(): void {
         this._cacheUri = this._uri;
+        this._isCached = false;
     }
 
     getUri(): string {
@@ -43,6 +47,10 @@ export class Resource implements ResourceInterface {
 
     getOrderOfFetch(): number {
         return 0;
+    }
+
+    getIsCached(): boolean {
+        return this._isCached;
     }
 }
 

@@ -17,6 +17,8 @@ export interface ResourceInterface {
 
     getOrderOfFetch(): number;
 
+    getIsCached(): boolean;
+
     key: string;
 }
 
@@ -84,6 +86,13 @@ export class ResourceManager {
                     const resourceKeys = relatedResources.map(resource => resource.key);
                     const uri = resourceForFetch.getUri();
                     const originUri = resourceForFetch.getOriginUri();
+
+                    if (resourceForFetch.getIsCached()) {
+                        // skip for already cached Resource
+                        resolve();
+
+                        return;
+                    }
 
                     try {
                         const objectUrl = await this.cacheResource({
