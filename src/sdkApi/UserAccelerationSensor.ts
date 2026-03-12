@@ -54,28 +54,30 @@ export class UserAccelerationSensor extends EventEmitter<"activate" | "reading" 
     }
 
     public start(): void {
-        if (this._state !== SENSOR_STATE.INIT) {
+        if (this._state === SENSOR_STATE.INIT || this._state === SENSOR_STATE.STOP) {
+            if (isAndroid) {
+                window.Android.startUserAccelerationSensor();
+                this._state = SENSOR_STATE.START;
+            } else if (isIos) {
+                iosMh.startUserAccelerationSensor.postMessage(JSON.stringify({}));
+                this._state = SENSOR_STATE.START;
+            }
+        } else {
             throw new Error(`Incorrect sensor state: ${this._state}`);
-        }
-        if (isAndroid) {
-            window.Android.startUserAccelerationSensor();
-            this._state = SENSOR_STATE.START;
-        } else if (isIos) {
-            iosMh.startUserAccelerationSensor.postMessage(JSON.stringify({}));
-            this._state = SENSOR_STATE.START;
         }
     }
 
     public stop(): void {
-        if (!(this._state === SENSOR_STATE.START || this._state === SENSOR_STATE.ERROR)) {
+        if (this._state === SENSOR_STATE.START || this._state === SENSOR_STATE.ERROR) {
+            if (isAndroid) {
+                window.Android.stopUserAccelerationSensor();
+                this._state = SENSOR_STATE.STOP;
+            } else if (isIos) {
+                iosMh.stopUserAccelerationSensor.postMessage(JSON.stringify({}));
+                this._state = SENSOR_STATE.STOP;
+            }
+        } else {
             throw new Error(`Incorrect sensor state: ${this._state}`);
-        }
-        if (isAndroid) {
-            window.Android.stopUserAccelerationSensor();
-            this._state = SENSOR_STATE.STOP;
-        } else if (isIos) {
-            iosMh.stopUserAccelerationSensor.postMessage(JSON.stringify({}));
-            this._state = SENSOR_STATE.STOP;
         }
     }
 }
