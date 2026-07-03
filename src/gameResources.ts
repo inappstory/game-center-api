@@ -83,6 +83,27 @@ export abstract class ResourceList implements Iterable<ResourceInterface> {
 
         return resource === null ? defaultValue : resource.getCacheUri();
     }
+    public getAssetExtByUri(uri: string) {
+        const hashMap = this.hashMap;
+
+        if (hashMap === null) {
+            return "";
+        }
+
+        let key: keyof typeof hashMap;
+        for (key in hashMap) {
+            const resource = hashMap[key];
+
+            if (resource && (resource.getCacheUri() === uri || resource.getOriginUri() === uri)) {
+                const originUri = (resource.getOriginUri() ?? "").split(".").pop() ?? "";
+                const ext = originUri.split("?")[0] ?? "";
+
+                return ext;
+            }
+        }
+
+        return "";
+    }
 
     protected rawMapGetter(): Record<string, string> {
         return {};
@@ -143,6 +164,9 @@ export const dynamicResourceAssets = new DynamicResourceAssets();
 
 export const getDynamicResourceAsset = <T>(key: string, defaultValue: T) => {
     return dynamicResourceAssets.getAssetByKey(key, defaultValue);
+};
+export const getDynamicResourceAssetExtByUri = (uri: string) => {
+    return dynamicResourceAssets.getAssetExtByUri(uri);
 };
 
 export enum PrimaryFontVariants {

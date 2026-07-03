@@ -2,6 +2,7 @@ import { getApplicationBuildVersion, getApplicationVersion, getSdkVersion, getSe
 import { gameLaunchConfig, getIsDemoMode, getSessionId, getApiBaseUrl, getTextWritingDir } from "./gameLaunchConfig";
 import {
     getDynamicResourceAsset,
+    getDynamicResourceAssetExtByUri,
     getDynamicResourceFont,
     getProjectFontFamilyStylesheet,
     dynamicResourceAssets,
@@ -67,6 +68,7 @@ export {
     shareFiles,
     vibrate,
     getDynamicResourceAsset,
+    getDynamicResourceAssetExtByUri,
     getDynamicResourceFont,
     getProjectFontFamilyStylesheet,
     getIsDemoMode,
@@ -123,6 +125,7 @@ const GameCenterApi = {
     shareFiles,
     vibrate,
     getDynamicResourceAsset,
+    getDynamicResourceAssetExtByUri,
     getDynamicResourceFont,
     getProjectFontFamilyStylesheet,
     getIsDemoMode,
