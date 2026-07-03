@@ -1,6 +1,6 @@
 {
     "name": "@inappstory/game-center-api",
-    "version": "1.3.43",
+    "version": "1.3.44",
     "description": "",
     "dependencies": {
         "@sentry/browser": "^9.5.0",
