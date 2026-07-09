@@ -20,6 +20,7 @@ export enum ScreenOrientation {
 export type GameLaunchConfig = {
     gameInstanceId: number;
     gameResources: GameResources;
+    gameImagePlaceholders: Array<string>; // list of game used ImagePlaceholder
     projectSlug: string;
     demoMode: boolean;
     projectEnv: "test" | "prod";
