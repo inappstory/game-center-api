@@ -63,7 +63,7 @@ const getClientLocalData = async () => {
     const gameInstanceId = getGameInstanceId();
     if (isDev) {
         if (gameInstanceId) {
-            const localData = localStorage.getItem("gameCenter_" + gameInstanceId + "_data");
+            const localData = localStorage?.getItem("gameCenter_" + gameInstanceId + "_data");
             if (localData) {
                 return JSON.parse(localData);
             }
@@ -172,7 +172,7 @@ const setGameLocalData = async (sendToServer: boolean = true) => {
     if (process.env.NODE_ENV === "development") {
         const gameInstanceId = getGameInstanceId();
         if (gameInstanceId) {
-            localStorage.setItem("gameCenter_" + gameInstanceId + "_data", JSON.stringify(data));
+            localStorage?.setItem("gameCenter_" + gameInstanceId + "_data", JSON.stringify(data));
             if (sendToServer) {
                 // todo implement if need it
             }

@@ -154,29 +154,26 @@ export function fetchLocalFile(url: string, options?: FetchLocalFileOptions | un
 
 /**
  * Provide remote network URI - for fetchLocalFile fallback src (applied only for Native SDK)
+ * Param uri - need to be relative URL
  */
 export const convertLocalFileUriToRemoteFileUri = (uri: string): string => {
+    // if uri is already an absolute URL - just return it.
+    if (uri.indexOf("http://") === 0 || uri.indexOf("https://") === 0 || uri.indexOf("file://") === 0) {
+        return uri;
+    }
+
     let baseUri = String(gameLaunchConfig.gameDomain).trimEnd();
     if (baseUri.charAt(baseUri.length - 1) !== "/") {
         baseUri += "/";
     }
 
-    let pathname = uri;
-    if (uri.substring(0, 1) === "/" || uri.substring(0, 2) === "./") {
-        pathname = uri;
-    } else {
-        try {
-            pathname = new URL(uri).pathname;
-        } catch (e) {
-            console.error(e);
-        }
+    let relativeURL = uri;
+
+    if (relativeURL.substring(0, 1) === "/") {
+        relativeURL = relativeURL.substring(1);
+    } else if (relativeURL.substring(0, 2) === "./") {
+        relativeURL = relativeURL.substring(2);
     }
 
-    if (pathname.substring(0, 1) === "/") {
-        pathname = pathname.substring(1);
-    } else if (pathname.substring(0, 2) === "./") {
-        pathname = pathname.substring(2);
-    }
-
-    return baseUri + pathname;
+    return baseUri + relativeURL;
 };
