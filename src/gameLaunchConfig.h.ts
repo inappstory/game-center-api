@@ -17,6 +17,12 @@ export enum ScreenOrientation {
     LANDSCAPE = "landscape",
 }
 
+export enum CloseButtonBehavior {
+    CLOSE_GAME = "closeGame",
+    GO_TO_MAIN = "goToMain",
+    HIDDEN = "hidden",
+}
+
 export type GameLaunchConfig = {
     gameInstanceId: number;
     gameResources: GameResources;
@@ -59,5 +65,6 @@ export type GameLaunchConfig = {
         userId: string;
         nonce?: string;
         variables: Record<string, any>;
+        closeButtonBehavior: CloseButtonBehavior;
     };
 };

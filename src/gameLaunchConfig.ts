@@ -1,4 +1,4 @@
-import { PlaceholderType, type GameLaunchConfig, type Placeholder } from "./gameLaunchConfig.h";
+import { CloseButtonBehavior, type GameLaunchConfig, type Placeholder, PlaceholderType } from "./gameLaunchConfig.h";
 import { getSemverSdkVersion, isAndroid } from "./env";
 import semver from "semver";
 import { base64url_decode } from "./helpers/base64urlDecode";
@@ -20,6 +20,9 @@ export function setGameLaunchConfig(config: GameLaunchConfig) {
     processLocalization();
 
     gameLaunchConfig.clientConfig.variables = gameLaunchConfig.clientConfig.variables ?? {};
+
+    // set default behavior for old SDK
+    gameLaunchConfig.clientConfig.closeButtonBehavior = gameLaunchConfig.clientConfig.closeButtonBehavior ?? CloseButtonBehavior.CLOSE_GAME;
 
     Object.freeze(gameLaunchConfig);
 }

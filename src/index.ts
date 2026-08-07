@@ -17,7 +17,7 @@ import { gameLoadedSdkCallback, gameLoadFailedSdkCallback, gameShouldForegroundC
 import { openUrl } from "./sdkApi/openUrl";
 import { shareText, shareUrl, shareFiles } from "./sdkApi/share";
 import { vibrate } from "./sdkApi/vibrate";
-import { ScreenOrientation, Placeholder, PlaceholderType, GameLaunchConfig } from "./gameLaunchConfig.h";
+import { ScreenOrientation, Placeholder, PlaceholderType, GameLaunchConfig, CloseButtonBehavior } from "./gameLaunchConfig.h";
 import { fetchLocalFile, convertLocalFileUriToRemoteFileUri } from "./sdkApi/fetchLocalFile";
 
 import { openStory } from "./sdkApi/openStory";
@@ -77,6 +77,7 @@ export {
     getTextWritingDir,
     ScreenOrientation,
     PlaceholderType,
+    CloseButtonBehavior,
     fetchLocalFile,
     convertLocalFileUriToRemoteFileUri,
     openStory,
@@ -134,6 +135,7 @@ const GameCenterApi = {
     getTextWritingDir,
     ScreenOrientation,
     PlaceholderType,
+    CloseButtonBehavior,
     fetchLocalFile,
     convertLocalFileUriToRemoteFileUri,
     openStory,
