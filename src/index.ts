@@ -1,5 +1,5 @@
 import { getApplicationBuildVersion, getApplicationVersion, getSdkVersion, getSemverSdkVersion, isAndroid, isDev, isIos, isWeb } from "./env";
-import { gameLaunchConfig, getIsDemoMode, getSessionId, getApiBaseUrl, getTextWritingDir } from "./gameLaunchConfig";
+import { gameLaunchConfig, getIsDemoMode, getSessionId, getApiBaseUrl, getTextWritingDir, getPlatform } from "./gameLaunchConfig";
 import {
     getDynamicResourceAsset,
     getDynamicResourceAssetExtByUri,
@@ -17,7 +17,7 @@ import { gameLoadedSdkCallback, gameLoadFailedSdkCallback, gameShouldForegroundC
 import { openUrl } from "./sdkApi/openUrl";
 import { shareText, shareUrl, shareFiles } from "./sdkApi/share";
 import { vibrate } from "./sdkApi/vibrate";
-import { ScreenOrientation, Placeholder, PlaceholderType, GameLaunchConfig, CloseButtonBehavior } from "./gameLaunchConfig.h";
+import { ScreenOrientation, Placeholder, PlaceholderType, GameLaunchConfig, CloseButtonBehavior, Platform } from "./gameLaunchConfig.h";
 import { fetchLocalFile, convertLocalFileUriToRemoteFileUri } from "./sdkApi/fetchLocalFile";
 
 import { openStory } from "./sdkApi/openStory";
@@ -75,9 +75,11 @@ export {
     getSessionId,
     getApiBaseUrl,
     getTextWritingDir,
+    getPlatform,
     ScreenOrientation,
     PlaceholderType,
     CloseButtonBehavior,
+    Platform,
     fetchLocalFile,
     convertLocalFileUriToRemoteFileUri,
     openStory,
@@ -133,9 +135,11 @@ const GameCenterApi = {
     getSessionId,
     getApiBaseUrl,
     getTextWritingDir,
+    getPlatform,
     ScreenOrientation,
     PlaceholderType,
     CloseButtonBehavior,
+    Platform,
     fetchLocalFile,
     convertLocalFileUriToRemoteFileUri,
     openStory,

@@ -1,5 +1,5 @@
-import { CloseButtonBehavior, type GameLaunchConfig, type Placeholder, PlaceholderType } from "./gameLaunchConfig.h";
-import { getSemverSdkVersion, isAndroid } from "./env";
+import { CloseButtonBehavior, type GameLaunchConfig, type Placeholder, PlaceholderType, Platform } from "./gameLaunchConfig.h";
+import { getSemverSdkVersion, isAndroid, isIos } from "./env";
 import semver from "semver";
 import { base64url_decode } from "./helpers/base64urlDecode";
 import { staticResourcesImagePlaceholders } from "./gameResources";
@@ -24,7 +24,31 @@ export function setGameLaunchConfig(config: GameLaunchConfig) {
     // set default behavior for old SDK
     gameLaunchConfig.clientConfig.closeButtonBehavior = gameLaunchConfig.clientConfig.closeButtonBehavior ?? CloseButtonBehavior.CLOSE_GAME;
 
+    // set default for old or native SDK
+    if (gameLaunchConfig.clientConfig.platform == null) {
+        if (isIos) {
+            gameLaunchConfig.clientConfig.platform = Platform.IOS;
+        } else if (isAndroid) {
+            gameLaunchConfig.clientConfig.platform = Platform.ANDROID;
+        } else {
+            gameLaunchConfig.clientConfig.platform = Platform.DESKTOP;
+        }
+    } else {
+        // convert string to enum
+        if (gameLaunchConfig.clientConfig.platform.toLowerCase() === "ios") {
+            gameLaunchConfig.clientConfig.platform = Platform.IOS;
+        } else if (gameLaunchConfig.clientConfig.platform.toLowerCase() === "android") {
+            gameLaunchConfig.clientConfig.platform = Platform.ANDROID;
+        } else {
+            gameLaunchConfig.clientConfig.platform = Platform.DESKTOP;
+        }
+    }
+
     Object.freeze(gameLaunchConfig);
+}
+
+export function getPlatform(): Platform {
+    return gameLaunchConfig.clientConfig.platform;
 }
 
 export function getGameInstanceId(): number {

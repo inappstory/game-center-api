@@ -23,6 +23,12 @@ export enum CloseButtonBehavior {
     HIDDEN = "hidden",
 }
 
+export enum Platform {
+    IOS = "ios",
+    ANDROID = "android",
+    DESKTOP = "desktop",
+}
+
 export type GameLaunchConfig = {
     gameInstanceId: number;
     gameResources: GameResources;
@@ -66,5 +72,6 @@ export type GameLaunchConfig = {
         nonce?: string;
         variables: Record<string, any>;
         closeButtonBehavior: CloseButtonBehavior;
+        platform: Platform;
     };
 };
