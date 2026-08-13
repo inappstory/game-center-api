@@ -168,6 +168,10 @@
         if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.logHandler && messages.length) {
             window.webkit.messageHandlers.logHandler.postMessage(messages[0]);
         }
+        // for web
+        if (window.parent !== window.top) {
+            window.parent.postMessage(["logHandler", messages[0]], "*");
+        }
     };
 
     window.console.info = function () {
@@ -176,13 +180,9 @@
         if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.infoHandler && messages.length) {
             window.webkit.messageHandlers.infoHandler.postMessage(messages[0]);
         }
-    };
-
-    window.console.debug = function () {
-        var messages = Array.prototype.slice.call(arguments);
-        console.debugOrigin(messages);
-        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.debugOrigin && messages.length) {
-            window.webkit.messageHandlers.debugOrigin.postMessage(messages[0]);
+        // for web
+        if (window.parent !== window.top) {
+            window.parent.postMessage(["infoHandler", messages[0]], "*");
         }
     };
 
@@ -192,13 +192,9 @@
         if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.debugHandler && messages.length) {
             window.webkit.messageHandlers.debugHandler.postMessage(messages[0]);
         }
-    };
-
-    window.console.warn = function () {
-        var messages = Array.prototype.slice.call(arguments);
-        console.warnOrigin(messages);
-        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.warnHandler && messages.length) {
-            window.webkit.messageHandlers.warnHandler.postMessage(messages[0]);
+        // for web
+        if (window.parent !== window.top) {
+            window.parent.postMessage(["debugHandler", messages[0]], "*");
         }
     };
 
@@ -236,6 +232,10 @@
         if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.errorHandler) {
             window.webkit.messageHandlers.errorHandler.postMessage(errorAsString);
         }
+        // for web
+        if (window.parent !== window.top) {
+            window.parent.postMessage(["errorHandler", errorAsString], "*");
+        }
     };
 
     window.console.warn = function () {
@@ -267,6 +267,10 @@
         // for iOS
         if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.warnHandler) {
             window.webkit.messageHandlers.warnHandler.postMessage(warningAsString);
+        }
+        // for web
+        if (window.parent !== window.top) {
+            window.parent.postMessage(["warnHandler", warningAsString], "*");
         }
     };
 
