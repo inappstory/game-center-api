@@ -1,6 +1,7 @@
 import { fetchLocalFile } from "./sdkApi/fetchLocalFile";
 import { type ResourceList } from "./gameResources";
 import { logError, logWarning } from "./eventLogger";
+import { SDKGameResource } from "./sdkApi/gameResourcesCache.h";
 
 export interface ResourceInterface {
     // set cache uri to object internal variable
@@ -50,7 +51,7 @@ export class ResourceManager {
         return instance;
     }
 
-    private addResourceToCacheTree = (resource: ResourceInterface) => {
+    private addResourceToCacheTree = (resource: ResourceInterface): string => {
         const originUri = resource.getOriginUri();
 
         const branch = (this.cacheTree[originUri] = this.cacheTree[originUri] ?? {
@@ -61,6 +62,8 @@ export class ResourceManager {
         branch.relatedResources.push(resource);
 
         if (resource.getOrderOfFetch() > branch.resourceForFetch.getOrderOfFetch()) branch.resourceForFetch = resource;
+
+        return originUri;
     };
 
     private createCacheTree() {
@@ -71,60 +74,19 @@ export class ResourceManager {
         }
     }
 
+    private hasInvalidResource = false;
+
     public async cacheAllResources() {
         this.createCacheTree();
 
         const promises: Array<Promise<void>> = [];
 
-        let hasInvalidResource = false;
+        this.hasInvalidResource = false;
 
         for (let resUri in this.cacheTree) {
             const { resourceForFetch, relatedResources } = this.cacheTree[resUri];
 
-            const promise = ((resourceForFetch, relatedResources) => {
-                return new Promise<void>(async (resolve, reject) => {
-                    const resourceKeys = relatedResources.map(resource => resource.key);
-                    const uri = resourceForFetch.getUri();
-                    const originUri = resourceForFetch.getOriginUri();
-
-                    if (resourceForFetch.getIsCached()) {
-                        // skip for already cached Resource
-                        resolve();
-
-                        return;
-                    }
-
-                    try {
-                        const objectUrl = await this.cacheResource({
-                            uri,
-                            originUri,
-                            resourceKeys,
-                        });
-
-                        if (objectUrl === originUri) {
-                            resolve();
-
-                            return;
-                        }
-
-                        for (const resource of relatedResources) {
-                            resource.setCacheUri(objectUrl);
-                        }
-
-                        resolve();
-                    } catch (e) {
-                        if (hasInvalidResource) {
-                            return;
-                        }
-
-                        hasInvalidResource = true;
-
-                        logError(e);
-
-                        reject(`Can't load resource for [${resourceKeys.join(", ")}]`);
-                    }
-                });
-            })(resourceForFetch, relatedResources);
+            const promise = this.internalCacheResource(resourceForFetch, relatedResources);
 
             promises.push(promise);
         }
@@ -189,6 +151,51 @@ export class ResourceManager {
         });
     }
 
+    private async internalCacheResource(resourceForFetch: ResourceInterface, relatedResources: Array<ResourceInterface>) {
+        return new Promise<void>(async (resolve, reject) => {
+            const resourceKeys = relatedResources.map(resource => resource.key);
+            const uri = resourceForFetch.getUri();
+            const originUri = resourceForFetch.getOriginUri();
+
+            if (resourceForFetch.getIsCached()) {
+                // skip for already cached Resource
+                resolve();
+
+                return;
+            }
+
+            try {
+                const objectUrl = await this.cacheResource({
+                    uri,
+                    originUri,
+                    resourceKeys,
+                });
+
+                if (objectUrl === originUri) {
+                    resolve();
+
+                    return;
+                }
+
+                for (const resource of relatedResources) {
+                    resource.setCacheUri(objectUrl);
+                }
+
+                resolve();
+            } catch (e) {
+                if (this.hasInvalidResource) {
+                    return;
+                }
+
+                this.hasInvalidResource = true;
+
+                logError(e);
+
+                reject(`Can't load resource for [${resourceKeys.join(", ")}]`);
+            }
+        });
+    }
+
     private async createObjectUrlByUri(uri: string, resourceKeys: string[]): Promise<{ failMessage: string } | string> {
         try {
             if (!uri) {
@@ -243,5 +250,13 @@ export class ResourceManager {
         }
 
         this.cacheTree = {};
+    }
+
+    public async addToCache(resourceList: ResourceList, sdkGameResource: SDKGameResource): Promise<void> {
+        const resource = await resourceList.add(sdkGameResource);
+
+        const { resourceForFetch, relatedResources } = this.cacheTree[this.addResourceToCacheTree(resource)];
+
+        return this.internalCacheResource(resourceForFetch, relatedResources);
     }
 }

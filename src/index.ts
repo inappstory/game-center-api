@@ -47,6 +47,7 @@ export type { ResourceInterface } from "./ResourceManager";
 export type { OpenStoryOptions } from "./sdkApi/openStory.h";
 export type { OpenGameInstanceOptions } from "./sdkApi/openGameInstance.h";
 export type { FetchLocalFileOptions } from "./sdkApi/fetchLocalFile";
+export type { SDKGameResource } from "./sdkApi/gameResourcesCache.h";
 
 export {
     createSdkApi,

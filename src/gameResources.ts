@@ -4,6 +4,8 @@ import { gameLaunchConfig } from "./gameLaunchConfig";
 import { isAndroid, isIos } from "./env";
 import { ResourceInterface } from "./ResourceManager";
 import { PlaceholderType } from "./gameLaunchConfig.h";
+import { SDKGameResource } from "./sdkApi/gameResourcesCache.h";
+import { addGameResourceToSDKCache, hasAddToSDKCacheApi } from "./sdkApi/gameResourcesCache";
 
 export class Resource implements ResourceInterface {
     private _cacheUri: string = "";
@@ -59,21 +61,55 @@ export abstract class ResourceList implements Iterable<ResourceInterface> {
 
     protected _hashMap: Record<string, Resource> | null = null;
 
+    protected initHashMap(): void {
+        const map = this.rawMapGetter();
+
+        this._hashMap = {};
+
+        let src: string;
+
+        for (let key in map) {
+            src = map[key];
+            this._hashMap[key] = new Resource(key, this.prepareSrc(src, key, true), this.convertToOriginUri(src), this.orderOfFetch);
+        }
+    }
+
     protected get hashMap() {
         if (this._hashMap === null) {
-            const map = this.rawMapGetter();
-
             this._hashMap = {};
-
-            let src: string;
-
-            for (let key in map) {
-                src = map[key];
-                this._hashMap[key] = new Resource(key, this.prepareSrc(src, key), this.convertToOriginUri(src), this.orderOfFetch);
-            }
+            this.initHashMap();
         }
 
         return this._hashMap as Readonly<typeof this._hashMap>;
+    }
+
+    public async add(sdkGameResource: SDKGameResource): Promise<Resource> {
+        let _isCachedInSDK = false;
+        if (hasAddToSDKCacheApi()) {
+            try {
+                await addGameResourceToSDKCache(sdkGameResource);
+                _isCachedInSDK = true;
+            } catch (reason) {
+                console.error(reason);
+            }
+        }
+
+        const resource = new Resource(
+            sdkGameResource.key,
+            this.prepareSrc(sdkGameResource.url, sdkGameResource.key, _isCachedInSDK),
+            this.convertToOriginUri(sdkGameResource.url),
+            this.orderOfFetch
+        );
+
+        if (this._hashMap === null) {
+            this.initHashMap();
+        }
+
+        if (this._hashMap !== null) {
+            this._hashMap[sdkGameResource.key] = resource;
+        }
+
+        return resource;
     }
 
     constructor() {}
@@ -109,7 +145,7 @@ export abstract class ResourceList implements Iterable<ResourceInterface> {
         return {};
     }
 
-    protected prepareSrc(src: string, key: string) {
+    protected prepareSrc(src: string, key: string, isCachedInSDK: boolean) {
         return src;
     }
 
@@ -148,9 +184,17 @@ export abstract class StaticResourceList extends ResourceList {
 export abstract class DynamicResourceList extends ResourceList {
     protected override orderOfFetch = 2;
 
-    protected override prepareSrc(src: string, key: string) {
-        if (isAndroid || isIos) return `./resources_${gameLaunchConfig.gameInstanceId}/${key}`;
-        else return src;
+    protected override prepareSrc(src: string, key: string, isCachedInSDK: boolean) {
+        if (isAndroid || isIos) {
+            if (isCachedInSDK) {
+                return `./resources_${gameLaunchConfig.gameInstanceId}/${key}`;
+            } else {
+                return src;
+            }
+        } else {
+            // web-sdk is without sdk client caching
+            return src;
+        }
     }
 }
 
