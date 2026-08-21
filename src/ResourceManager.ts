@@ -1,7 +1,7 @@
 import { fetchLocalFile } from "./sdkApi/fetchLocalFile";
 import { type ResourceList } from "./gameResources";
 import { logError, logWarning } from "./eventLogger";
-import { SDKGameResource } from "./sdkApi/gameResourcesCache.h";
+import { SDKGameResourceForCache } from "./sdkApi/gameResourcesCache.h";
 
 export interface ResourceInterface {
     // set cache uri to object internal variable
@@ -252,11 +252,15 @@ export class ResourceManager {
         this.cacheTree = {};
     }
 
-    public async addToCache(resourceList: ResourceList, sdkGameResource: SDKGameResource): Promise<void> {
-        const resource = await resourceList.add(sdkGameResource);
+    public async addToCache(resourceList: ResourceList, sdkGameResourcesForCache: SDKGameResourceForCache[]): Promise<void[]> {
+        return Promise.all(
+            sdkGameResourcesForCache.map(async sdkGameResourceForCache => {
+                const resource = await resourceList.add(sdkGameResourceForCache.resource);
 
-        const { resourceForFetch, relatedResources } = this.cacheTree[this.addResourceToCacheTree(resource)];
+                const { resourceForFetch, relatedResources } = this.cacheTree[this.addResourceToCacheTree(resource)];
 
-        return this.internalCacheResource(resourceForFetch, relatedResources);
+                return this.internalCacheResource(resourceForFetch, relatedResources);
+            })
+        );
     }
 }

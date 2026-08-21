@@ -4,3 +4,8 @@ export type SDKGameResource = {
     sha1: string;
     size: number;
 };
+
+export type SDKGameResourceForCache = {
+    resource: SDKGameResource;
+    options?: {};
+};
