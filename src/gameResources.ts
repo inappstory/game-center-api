@@ -84,6 +84,10 @@ export abstract class ResourceList implements Iterable<ResourceInterface> {
     }
 
     public async add(sdkGameResource: SDKGameResource): Promise<Resource> {
+        if (this._hashMap !== null && this._hashMap[sdkGameResource.key] != null) {
+            return this._hashMap[sdkGameResource.key];
+        }
+
         let _isCachedInSDK = false;
         if (hasAddToSDKCacheApi()) {
             try {
@@ -105,7 +109,7 @@ export abstract class ResourceList implements Iterable<ResourceInterface> {
             this.initHashMap();
         }
 
-        if (this._hashMap !== null) {
+        if (this._hashMap !== null && this._hashMap[sdkGameResource.key] == null) {
             this._hashMap[sdkGameResource.key] = resource;
         }
 
