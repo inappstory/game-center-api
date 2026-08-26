@@ -51,7 +51,7 @@ export class Resource implements ResourceInterface {
         return 0;
     }
 
-    getIsCached(): boolean {
+    isCached(): boolean {
         return this._isCached;
     }
 }

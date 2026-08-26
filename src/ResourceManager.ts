@@ -18,7 +18,7 @@ export interface ResourceInterface {
 
     getOrderOfFetch(): number;
 
-    getIsCached(): boolean;
+    isCached(): boolean;
 
     key: string;
 }
@@ -61,7 +61,9 @@ export class ResourceManager {
 
         branch.relatedResources.push(resource);
 
-        if (resource.getOrderOfFetch() > branch.resourceForFetch.getOrderOfFetch()) branch.resourceForFetch = resource;
+        if (resource.getOrderOfFetch() > branch.resourceForFetch.getOrderOfFetch()) {
+            branch.resourceForFetch = resource;
+        }
 
         return originUri;
     };
@@ -157,8 +159,14 @@ export class ResourceManager {
             const uri = resourceForFetch.getUri();
             const originUri = resourceForFetch.getOriginUri();
 
-            if (resourceForFetch.getIsCached()) {
-                // skip for already cached Resource
+            if (resourceForFetch.isCached()) {
+                // Skip for already cached Resource
+                const cacheUri = resourceForFetch.getCacheUri();
+
+                for (const resource of relatedResources) {
+                    resource.setCacheUri(cacheUri);
+                }
+
                 resolve();
 
                 return;
