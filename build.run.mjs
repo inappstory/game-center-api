@@ -30,7 +30,7 @@ execSync("copyfiles -u 1 src/**/*.html lib/");
 
 // 3. EventLogger module assembling
 console.log(chalk.blue("3. EventLogger module assembling"));
-execSync("node --no-experimental-fetch node_modules/webpack/bin/webpack.js -c event-logger.webpack.config.js");
+execSync("node node_modules/webpack/bin/webpack.js -c event-logger.webpack.config.js");
 
 // 4. Paste EventLogger module in logger.html
 console.log(chalk.blue("Paste EventLogger module in logger.html"));
