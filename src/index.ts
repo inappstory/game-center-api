@@ -32,6 +32,7 @@ import { logError, logWarning } from "./eventLogger";
 import { UserAccelerationSensor } from "./sdkApi/UserAccelerationSensor";
 import { base64url_decode } from "./helpers/base64urlDecode";
 import { writeTextToClipboard } from "./sdkApi/clipboard";
+import { showTextInput, hasTextInputApi } from "./sdkApi/textInput";
 
 export type { OpenFilePickerProps, SDKFileResponse, LocalFile, LocalFileList, FilePickerResultPayload, FilePickerResult } from "./sdkApi/filePicker.h";
 
@@ -107,6 +108,8 @@ export {
     UserAccelerationSensor,
     base64url_decode,
     writeTextToClipboard,
+    showTextInput,
+    hasTextInputApi,
 };
 
 const GameCenterApi = {
@@ -167,6 +170,8 @@ const GameCenterApi = {
     UserAccelerationSensor,
     base64url_decode,
     writeTextToClipboard,
+    showTextInput,
+    hasTextInputApi,
 };
 
 export { GameCenterApi as default };

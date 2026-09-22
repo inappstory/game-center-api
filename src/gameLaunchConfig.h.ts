@@ -65,6 +65,7 @@ export type GameLaunchConfig = {
         sdkFeatures?: {
             gameShouldForegroundCallback?: boolean;
             writeToClipboard?: boolean;
+            showTextInput?: boolean;
         };
         sessionId: string;
         userAgent: string;
