@@ -4,7 +4,7 @@ import { webSource } from "./web/Source";
 import { gameLaunchConfig } from "../gameLaunchConfig";
 import { asyncQueue } from "../asyncQueue";
 
-export const showTextInput = async (config: { title: string; input: { placeholder: string; type: "" | "email" | "tel" } }): Promise<string> => {
+export const showTextInput = async (config: { title: string; input: { placeholder: string; type: "" | "email" | "tel" }; button: string }): Promise<string> => {
     const id = uuidV4();
 
     const result = new Promise<string>((resolve, reject) => {
