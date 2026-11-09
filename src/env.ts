@@ -14,9 +14,15 @@ declare global {
     }
 }
 
-const isAndroid = Boolean(window.Android && window.Android.gameLoaded);
+// if we in Top window - parent will be equals top window
+const isInsideIFrame = window.parent !== window;
+
+const isAndroid = Boolean(window.Android && window.Android.gameLoaded) && !isInsideIFrame;
 // todo как то улучшить detector
-const isIos = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.gameLoaded;
+// нужно отделить - окружение sdk в котором запускается игра
+// и платформу (мобилка, десктоп, браузер в мобилке и т.д.)
+// может быть такое - root игра в android sdk а вложенная - через iframe env sdk (postMessage mechanism)
+const isIos = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.gameLoaded && !isInsideIFrame;
 const isWeb = !isAndroid && !isIos;
 
 let iosMh: Record<string, any> = {};
