@@ -117,6 +117,11 @@ export const createSdkApi = ({
                                 window.closeGameReader();
                             }
                             break;
+                        case "gameReaderGestureBack":
+                            {
+                                window.gameReaderGestureBack();
+                            }
+                            break;
                         case "shareComplete":
                             {
                                 if (data[1]) {
